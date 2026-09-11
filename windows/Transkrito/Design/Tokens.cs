@@ -141,6 +141,8 @@ public static class Tokens
         public const double TimeColumn = 56;
         public const double TimeBaselineOffset = 3;
         public const double RowGap = 2;
+        public const double StatusDot = 8;
+        public const double DayHeaderTracking = 0.6;
     }
     public const int BiasMaxTerms = 40;
 }

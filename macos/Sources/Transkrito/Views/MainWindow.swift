@@ -1,65 +1,75 @@
 import SwiftUI
 
-enum MainTab: Hashable { case history, dictionary }
+enum Page: Hashable { case dictation, dictionary, settings }
 
-/// status → pillars → Start pill + hotkey hint → History | Dictionary → content. No sidebar, cards or panels.
+/// Shell: rail (wordmark, navigation, status + hotkey) and one of three pages. Mirrors the Windows MainWindow.
 struct MainWindow: View {
     @Environment(AppController.self) private var app
-    @Environment(\.openSettings) private var openSettings
-    @State private var tab: MainTab = .history
-    @State private var pulse = false
+    @Binding var page: Page
 
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
-            WindowBackground()
-
-            VStack(spacing: 0) {
-                statusText
-                PillarsView(level: app.level)
-                    .padding(Tokens.Space.s4)
-
-                VStack(spacing: Tokens.Space.s2) {
-                    Button(app.actionLabel) { app.toggle() }
-                        .buttonStyle(PillButtonStyle())
-                        .disabled(app.isTranscribing)
-                    Text(app.hotkeyLabel)
-                        .textStyle(Tokens.TypeScale.mono)
-                        .foregroundStyle(app.hotkeyError == nil ? Tokens.Colors.inkTertiary : Tokens.Colors.stateDanger)
-                        .multilineTextAlignment(.center)
+        HStack(spacing: 0) {
+            rail
+            Rectangle().fill(Tokens.Colors.lineGlass1).frame(width: Tokens.Border.hairline).ignoresSafeArea()
+            ZStack {
+                if page == .dictation { DeepWash() }
+                switch page {
+                case .dictation: DictationPage()
+                case .dictionary: DictionaryPage()
+                case .settings: SettingsPage()
                 }
-
-                TextToggle(options: [(MainTab.history, "History"), (MainTab.dictionary, "Dictionary")], selection: $tab)
-                    .padding(.top, Tokens.Space.s5)
-                    .padding(.bottom, Tokens.Space.s3)
-
-                Group {
-                    switch tab {
-                    case .history: HistoryView()
-                    case .dictionary: DictionaryView()
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             }
-            .padding(Tokens.Space.s6)
-
-            Button("Settings") { openSettings() }
-                .buttonStyle(TextLinkButtonStyle())
-                .padding(Tokens.Space.s3)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .background(WindowBackground())
         .frame(minWidth: Tokens.Layout.windowMinWidth, minHeight: Tokens.Layout.windowMinHeight)
         .task { await app.loadModel() }
     }
 
-    private var statusText: some View {
-        Text(app.status)
-            .textStyle(Tokens.TypeScale.status)
-            .foregroundStyle(app.statusIsError ? Tokens.Colors.stateDanger
-                             : app.isListening ? Tokens.Colors.stateRecording : Tokens.Colors.inkSecondary)
-            .multilineTextAlignment(.center)
-            .opacity(app.isListening ? (pulse ? Tokens.Motion.statusPulseMin : Tokens.Motion.statusPulseMax) : 1)
-            .animation(app.isListening
-                       ? .easeInOut(duration: Tokens.Motion.statusPulse / 2).repeatForever(autoreverses: true)
-                       : Tokens.Motion.easeStandard, value: pulse)
-            .onChange(of: app.isListening, initial: true) { _, listening in pulse = listening }
+    private var rail: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: Tokens.Space.s2) {
+                Image(systemName: "waveform").font(.system(size: Tokens.Comp.iconSize, weight: .medium)).foregroundStyle(Tokens.Colors.accentIce)
+                Text("Transkrito").textStyle(Tokens.TypeScale.body).fontWeight(.medium).foregroundStyle(Tokens.Colors.inkPrimary)
+            }
+            .padding(.horizontal, Tokens.Comp.fieldPaddingH)
+            .padding(.vertical, Tokens.Comp.fieldPaddingV)
+            .padding(.top, Tokens.Space.s5) // room under the traffic lights
+
+            VStack(spacing: Tokens.Space.s1) {
+                RailItem(title: "Dictation", symbol: "mic", active: page == .dictation) { page = .dictation }
+                RailItem(title: "Dictionary", symbol: "book.closed", active: page == .dictionary) { page = .dictionary }
+                RailItem(title: "Settings", symbol: "slider.horizontal.3", active: page == .settings) { page = .settings }
+            }
+            .padding(.top, Tokens.Space.s5)
+
+            Spacer()
+
+            VStack(alignment: .leading, spacing: Tokens.Space.s2) {
+                HStack(spacing: Tokens.Space.s2) {
+                    Circle().fill(statusColor).frame(width: Tokens.Comp.statusDot, height: Tokens.Comp.statusDot)
+                    Text(app.status).textStyle(Tokens.TypeScale.caption).foregroundStyle(statusInk).lineLimit(2)
+                }
+                KeyCaps()
+            }
+            .padding(.horizontal, Tokens.Comp.fieldPaddingH)
+            .padding(.vertical, Tokens.Comp.fieldPaddingV)
+        }
+        .padding(Tokens.Space.s4)
+        .frame(width: Tokens.Layout.railWidth)
+        .frame(maxHeight: .infinity)
+        .background(Tokens.Colors.bgRail.ignoresSafeArea())
+    }
+
+    private var statusColor: Color {
+        if app.statusIsError { return Tokens.Colors.stateDanger }
+        if app.isListening { return Tokens.Colors.stateRecording }
+        if app.isTranscribing { return Tokens.Colors.accentBase }
+        return Tokens.Colors.inkTertiary
+    }
+    private var statusInk: Color {
+        if app.statusIsError { return Tokens.Colors.stateDanger }
+        if app.isListening { return Tokens.Colors.stateRecording }
+        return Tokens.Colors.inkSecondary
     }
 }

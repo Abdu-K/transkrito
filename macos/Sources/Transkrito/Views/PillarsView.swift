@@ -10,6 +10,7 @@ final class PillarModel {
     private(set) var heights = [CGFloat](repeating: 0, count: n)
     private(set) var speaking: Double = 0
     private var last: TimeInterval = 0
+    private var clock: TimeInterval = 0 // for the idle breathing cycle
     private var rng = SystemRandomNumberGenerator()
 
     init() {
@@ -26,6 +27,7 @@ final class PillarModel {
     func step(now: TimeInterval, level: Double) -> Bool {
         let dt = last == 0 ? 1 / 60.0 : min(0.1, now - last)
         last = now
+        clock += dt
         let k = 1 - exp(-dt / (Tokens.Motion.pillarSpringLerp))
         let kSpeak = 1 - exp(-dt / Tokens.Motion.base)
         let speakingTarget: Double = level >= Tokens.Pillar.speakingThreshold ? 1 : 0
@@ -37,8 +39,9 @@ final class PillarModel {
                 jitterTarget[i] = Double.random(in: -Tokens.Pillar.jitter...Tokens.Pillar.jitter, using: &rng)
             }
             jitter[i] += (jitterTarget[i] - jitter[i]) * k * 0.5
-            // Resting shape (idleLevel) so the wave reads while silent; voice adds on top of it.
-            let drive = Tokens.Pillar.idleLevel + (1 - Tokens.Pillar.idleLevel) * level
+            // Resting shape (idleLevel) that breathes slowly (motion.breathing.idle); voice adds on top of it.
+            let breath = sin(clock * 2 * .pi / Tokens.Motion.breathing) * Tokens.Motion.breathingAmplitude
+            let drive = Tokens.Pillar.idleLevel * (1 + breath) + (1 - Tokens.Pillar.idleLevel) * level
             let target = Tokens.Pillar.minHeight + (Tokens.Pillar.maxHeight - Tokens.Pillar.minHeight)
                 * drive * envelope[i] * (1 + jitter[i] * min(1, level * 4))
             heights[i] += (target - heights[i]) * k
@@ -84,7 +87,7 @@ struct PillarsView: View {
             for i in 0..<PillarModel.n {
                 let h = model.heights[i]
                 let rect = CGRect(x: x0 + CGFloat(i) * (w + gap), y: cy - h / 2, width: w, height: h)
-                glow.fill(Capsule().path(in: rect.insetBy(dx: -2, dy: -2)), with: .color(Tokens.Colors.accentBase.opacity(glowAlpha)))
+                glow.fill(Capsule().path(in: rect.insetBy(dx: -Tokens.Space.s1 / 2, dy: -Tokens.Space.s1 / 2)), with: .color(Tokens.Colors.accentIce.opacity(glowAlpha)))
             }
         }
 

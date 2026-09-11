@@ -25,7 +25,17 @@ final class AppController {
     var isTranscribing: Bool { state == .transcribing }
     var isIdle: Bool { state == .idle }
     var actionLabel: String { state == .listening ? "Stop" : "Start" }
-    var hotkeyLabel: String { hotkeyError ?? settings.hotkey.display }
+    var hotkeyLabel: String { settings.hotkey.display }
+    var hotkeyHint: String { settings.holdToTalk ? "Hold to dictate" : "Press to start, press to stop" }
+    var holdToTalkVerb: String { settings.holdToTalk ? "Hold" : "Press" }
+    var holdToTalk: Bool {
+        get { settings.holdToTalk }
+        set { settings.hotkeyMode = newValue ? "hold" : "toggle"; settings.save() }
+    }
+    var inputDevice: String {
+        get { settings.inputDevice }
+        set { settings.inputDevice = newValue; settings.save(); audio.deviceUID = newValue }
+    }
 
     init() {
         AppPaths.ensureDirs()
@@ -38,9 +48,11 @@ final class AppController {
             guard let self else { return }
             self.engine.biasTerms = Bias.terms(self.dictionary.entries)
         }
+        audio.deviceUID = settings.inputDevice
         audio.onLevel = { [weak self] l in Task { @MainActor in self?.level = l } }
         audio.onBuffer = { [weak self] b in self?.engine.feed(b) }
-        hotkey.onPressed = { [weak self] in self?.toggle() }
+        hotkey.onPressed = { [weak self] in self?.hotkeyDown() }
+        hotkey.onReleased = { [weak self] in self?.hotkeyUp() }
         applyHotkey(settings.hotkey)
     }
 
@@ -71,7 +83,7 @@ final class AppController {
         await engine.refreshAssetState()
         switch engine.assetState {
         case .installed: setStatus("Ready")
-        case .notInstalled: setStatus("Speech model for \(engine.locale.identifier) not downloaded. Open Settings to download it.", error: true)
+        case .notInstalled: setStatus("Speech model for \(engine.locale.identifier) not downloaded \u{2014} open Settings", error: true)
         case .downloading: setStatus("Downloading speech model\u{2026}")
         case .unsupported: setStatus("\(engine.locale.identifier) is not supported by Apple Speech. Pick another language in Settings.", error: true)
         case .unknown: setStatus("Ready")
@@ -79,6 +91,17 @@ final class AppController {
     }
 
     // MARK: - Recording
+
+    /// Chord pressed. Hold mode: start. Toggle mode: start or stop.
+    func hotkeyDown() {
+        if settings.holdToTalk { Task { await start() } } else { toggle() }
+    }
+
+    /// Chord released. Hold mode: stop.
+    func hotkeyUp() {
+        guard settings.holdToTalk, state == .listening else { return }
+        Task { await stop() }
+    }
 
     func toggle() {
         switch state {
@@ -119,7 +142,7 @@ final class AppController {
         do {
             let raw = try await engine.finishSession()
             if raw.isEmpty {
-                setStatus("Nothing heard")
+                setStatus(duration < 0.4 ? "Hold the key while you speak" : "Nothing heard")
                 return
             }
             let (text, events) = CorrectionEngine.apply(raw, entries: dictionary.entries)
@@ -129,6 +152,8 @@ final class AppController {
                 corrections: events.map(CorrectionRecord.init)
             )
             history.add(item)
+            let id = item.id
+            Task { try? await Task.sleep(for: .seconds(Tokens.Motion.rowHighlight)); history.markSeen(id) }
             Inserter.copyToClipboard(text)
             if settings.insertAtCursor { Inserter.pasteIntoForegroundApp() }
             setStatus(events.isEmpty ? "Copied" : "Copied \u{00B7} \(item.correctionLabel)")

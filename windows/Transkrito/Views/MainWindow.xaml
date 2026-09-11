@@ -34,7 +34,7 @@
                 <!-- Status at the bottom: what the app is doing + the hotkey, always visible -->
                 <StackPanel DockPanel.Dock="Bottom" Margin="{StaticResource Pad.Field}">
                     <StackPanel Orientation="Horizontal">
-                        <Ellipse x:Name="StatusDot" Width="8" Height="8" VerticalAlignment="Center" Fill="{StaticResource Brush.InkTertiary}">
+                        <Ellipse x:Name="StatusDot" Width="{StaticResource Comp.StatusDot}" Height="{StaticResource Comp.StatusDot}" VerticalAlignment="Center" Fill="{StaticResource Brush.InkTertiary}">
                             <Ellipse.Style>
                                 <Style TargetType="Ellipse">
                                     <Style.Triggers>

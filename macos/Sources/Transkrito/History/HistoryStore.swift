@@ -14,6 +14,10 @@ struct CorrectionRecord: Codable, Identifiable, Equatable {
 }
 
 struct Transcription: Codable, Identifiable, Equatable {
+    enum CodingKeys: String, CodingKey { case id, date, raw, text, durationSec, engine, model, corrections }
+
+    /// True briefly after the row lands so the list can hold a tint until noticed. Not persisted.
+    var isNew = false
     var id: String = UUID().uuidString
     var date: Date = Date()
     var raw: String = ""
@@ -26,11 +30,19 @@ struct Transcription: Codable, Identifiable, Equatable {
     var hasCorrections: Bool { !corrections.isEmpty }
     var correctionCount: Int { corrections.reduce(0) { $0 + $1.count } }
     var correctionLabel: String { correctionCount == 1 ? "1 correction" : "\(correctionCount) corrections" }
-    var timeLabel: String {
+    var timeLabel: String { Self.time.string(from: date) }
+    var wordCount: Int { text.split(whereSeparator: \.isWhitespace).count }
+    var dayKey: String { Self.dayKeyFormatter.string(from: date) }
+    var dayLabel: String {
+        let cal = Calendar.current
+        if cal.isDateInToday(date) { return "Today" }
+        if cal.isDateInYesterday(date) { return "Yesterday" }
         let f = DateFormatter()
-        f.dateFormat = Calendar.current.isDateInToday(date) ? "HH:mm" : "d MMM HH:mm"
+        f.dateFormat = cal.component(.year, from: date) == cal.component(.year, from: Date()) ? "d MMMM" : "d MMMM yyyy"
         return f.string(from: date)
     }
+    private static let time: DateFormatter = { let f = DateFormatter(); f.dateFormat = "HH:mm"; return f }()
+    private static let dayKeyFormatter: DateFormatter = { let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"; return f }()
 }
 
 struct HistoryFile: Codable {
@@ -51,7 +63,36 @@ final class HistoryStore {
         items = ((try? JsonFile.read(HistoryFile.self, from: fileURL)) ?? nil)?.items ?? []
     }
 
+    struct DayGroup: Identifiable { let label: String; let items: [Transcription]; var id: String { label } }
+
+    func grouped(_ query: String) -> [DayGroup] {
+        var order: [String] = []
+        var buckets: [String: [Transcription]] = [:]
+        for t in search(query) {
+            if buckets[t.dayKey] == nil { order.append(t.dayKey) }
+            buckets[t.dayKey, default: []].append(t)
+        }
+        return order.map { DayGroup(label: buckets[$0]![0].dayLabel, items: buckets[$0]!) }
+    }
+
+    /// Today's count, today's words, and the run of consecutive days (ending today) with at least one dictation.
+    func stats() -> (today: Int, wordsToday: Int, streak: Int) {
+        let cal = Calendar.current
+        let todays = items.filter { cal.isDateInToday($0.date) }
+        let days = Set(items.map { cal.startOfDay(for: $0.date) })
+        var streak = 0
+        var d = cal.startOfDay(for: Date())
+        while days.contains(d) { streak += 1; d = cal.date(byAdding: .day, value: -1, to: d)! }
+        return (todays.count, todays.reduce(0) { $0 + $1.wordCount }, streak)
+    }
+
+    func markSeen(_ id: String) {
+        if let i = items.firstIndex(where: { $0.id == id }) { items[i].isNew = false }
+    }
+
     func add(_ t: Transcription) {
+        var t = t
+        t.isNew = true
         items.insert(t, at: 0)
         if items.count > Self.cap { items.removeLast(items.count - Self.cap) }
         save()

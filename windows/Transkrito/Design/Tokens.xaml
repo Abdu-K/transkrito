@@ -177,6 +177,8 @@
   <sys:Double x:Key="Comp.TimeColumn">56</sys:Double>
   <sys:Double x:Key="Comp.TimeBaselineOffset">3</sys:Double>
   <sys:Double x:Key="Comp.RowGap">2</sys:Double>
+  <sys:Double x:Key="Comp.StatusDot">8</sys:Double>
+  <sys:Double x:Key="Comp.DayHeaderTracking">0.6</sys:Double>
   <Thickness x:Key="Pad.Field">12,8</Thickness>
   <Thickness x:Key="Pad.Chip">8,2</Thickness>
   <Thickness x:Key="Pad.PillH">24,0</Thickness>

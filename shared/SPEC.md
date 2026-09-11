@@ -28,9 +28,11 @@ All JSON is pretty-printed, UTF-8, written atomically (temp + rename). Dictionar
 ### settings.json
 ```json
 { "version": 1, "hotkey": { "key": "Space", "modifiers": ["control","option"] },
-  "model": "en-US", "insertAtCursor": true }
+  "hotkeyMode": "hold", "inputDevice": "", "model": "en-US", "insertAtCursor": true }
 ```
-Windows modifiers: `control`, `alt`, `shift`, `win`. macOS: `control`, `option`, `shift`, `command`. Default: mac ⌃⌥Space, Windows Ctrl+Alt+Space. Hotkey toggles: idle→listening, listening→stop.
+Windows modifiers: `control`, `alt`, `shift`, `win`. macOS: `control`, `option`, `shift`, `command`. Default: mac ⌃⌥Space, Windows Ctrl+Alt+Space.
+`hotkeyMode`: `hold` (default, push-to-talk: chord down → listening, chord up → transcribe; releasing any modifier also ends the hold) or `toggle` (press → start, press → stop). Windows uses a low-level keyboard hook (the chord's key is swallowed); macOS uses Carbon hot-key pressed/released events.
+`inputDevice`: Windows = WASAPI endpoint id, macOS = Core Audio device UID; empty = system default. Any device format is downmixed to mono and resampled.
 
 ## Correction engine — `apply(text, entries) -> (text, events)`
 1. Rules: `correction` → hear→write. `term` → text→text (fixes casing and glued/hyphen variants).
@@ -53,13 +55,16 @@ All `term.text` + all `correction.write`, dedup case-insensitive keeping first, 
 
 ## Recording state machine
 `idle → listening → transcribing → idle`. Audio: 16 kHz mono float32. Level = RMS per buffer, mapped `level = clamp((20·log10(rms) + 50) / 50, 0, 1)` (−50 dBFS → 0, 0 dBFS → 1), smoothed with EMA: `a = 1 − exp(−dt/τ)`, τ = attack when rising, release when falling.
-On stop: transcribe → `apply` → history insert → clipboard → optional insert-at-cursor → idle. Empty transcript → status "Nothing heard", no history entry.
+On stop: transcribe → `apply` → history insert (row flagged `isNew` for `motion.rowHighlight` ms) → clipboard → optional insert-at-cursor → idle. Empty transcript → status "Nothing heard" (or "Hold the key while you speak" when the hold was < 0.4 s), no history entry.
 
 ## Pillars
 `count 21`, index `i ∈ [0, 20]`, center 10, `d = |i − 10|`, `env = max(0.15, cos²(π·d/20))`.
 Jitter: per-pillar random walk in [−0.06, 0.06], mirrored (i and 20−i share). `drive = idleLevel + (1−idleLevel)·level` (idleLevel 0.12 keeps a resting wave while silent). `h_i = min + (max−min)·drive·env_i·(1+jitter_i)`. Pillar is "speaking" when smoothed level ≥ 0.06 → glass style (fill gradient, inner highlight, edge, glow with alpha ∝ level) fades in over `motion.base`. Below threshold: `pillar.idle` fill, no glow.
 
-## Main window layout (top → bottom)
+## Main window (v2 shell)
+Rail (220): wordmark · nav Dictation / Dictionary / Settings · status dot + text · hotkey key caps + mode hint. Page = Dictation (pillars, mic + “Hold <hotkey> anywhere”, stats line “Today · n dictations · w words · s-day streak”, search, history grouped Today / Yesterday / d MMMM), Dictionary (title, add editor, search + All/Words/Corrections filter, rows), Settings (hotkey + Hold/Toggle, microphone, model, insert, files). ⌘, / Ctrl+, opens the Settings page in-window.
+
+## Main window layout v1 (superseded, kept for reference)
 status text (`type.status`) · pillars · Start/Stop pill (`accent.base`, `ink.inverse`, radius pill) with hotkey hint (`type.mono`, `ink.tertiary`) · text toggle "History | Dictionary" (`type.body`; active = `accent.base` + 1pt underline) · flat search field · rows with hairline separators.
 History row: `text` (`type.transcript`), time (`type.caption`, `ink.secondary`), copy button (appears on hover / always on touch), chip "N corrections" (`type.caption`, `accent.pale` bg, radius sm) → expands to `matched → write` lines.
 Dictionary row: term or `hear → write`, edit inline, delete (`state.danger` on hover). Add form: type toggle, fields, warning line (`state.warning`).

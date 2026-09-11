@@ -69,6 +69,12 @@ struct AppSettings: Codable, Equatable {
     /// Locale identifier for the speech model, e.g. "en-US".
     var model: String = Locale.current.identifier.replacingOccurrences(of: "_", with: "-")
     var insertAtCursor = true
+    /// "hold" = push-to-talk (default); "toggle" = press to start, press to stop.
+    var hotkeyMode: String = "hold"
+    /// Core Audio device UID; empty = system default input.
+    var inputDevice: String = ""
+
+    var holdToTalk: Bool { hotkeyMode != "toggle" }
 
     static func load() -> AppSettings {
         ((try? JsonFile.read(AppSettings.self, from: AppPaths.settings)) ?? nil) ?? AppSettings()

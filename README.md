@@ -1,6 +1,6 @@
 # Transkrito
 
-Quiet, minimal dictation. Press a hotkey anywhere, speak, get text — corrected by a dictionary you teach it.
+Quiet, minimal dictation. Hold a hotkey anywhere, speak, let go — the text lands at your cursor, corrected by a dictionary you teach it.
 
 Two native apps, one design, one spec:
 
@@ -10,7 +10,8 @@ Two native apps, one design, one spec:
 | Engine | Apple Speech — `SpeechAnalyzer` + `DictationTranscriber`, on-device (macOS 26) | NVIDIA Parakeet TDT 0.6B via sherpa-onnx, on-device |
 | Biasing | dictionary terms passed as `AnalysisContext.contextualStrings` (cap 40) | not supported by Parakeet TDT (greedy decoding) — shown in Settings |
 | Correction pass | identical, tested against `shared/correction-tests.json` | identical |
-| Hotkey | Carbon `RegisterEventHotKey` (no Accessibility needed) | `RegisterHotKey` |
+| Hotkey | Carbon `RegisterEventHotKey` press + release (no Accessibility needed) | low-level keyboard hook (press + release, chord key swallowed) |
+| Microphone | Core Audio device list, set on the input unit | WASAPI endpoint list, downmix + resample |
 | Secondary surface | menu bar extra | tray icon |
 
 ## Layout
@@ -50,7 +51,11 @@ dotnet run --project Transkrito                    # run
 dotnet publish Transkrito -c Release -r win-x64    # self-contained exe in Transkrito/bin/Release/net9.0-windows10.0.19041.0/win-x64/publish
 ```
 
-First run: Settings (Ctrl+,) → Model → Download (≈470 MB, extracted to `%LOCALAPPDATA%\Transkrito\models`). If the default hotkey (Ctrl+Alt+Space) is taken by another app the window says so — record another one in Settings.
+First run: Settings (Ctrl+,) → Model → Download (≈470 MB, extracted to `%LOCALAPPDATA%\Transkrito\models`). Pick your microphone there too. Default hotkey Ctrl+Alt+Space, hold-to-talk; switch to press-to-toggle in Settings.
+
+## Design
+
+`design/tokens.json` is the single source of truth (v2: navy → icy cyan, glass pillars, sidebar shell). `PRODUCT.md` holds product truth; `.impeccable/surfaces/*.md` the direction contract; `DESIGN.md` the built world. The impeccable skills are installed under `.claude/skills/impeccable` — its Live Mode is web-only and does not attach to these native apps; the review/critique/polish playbooks do apply.
 
 ## Files you can edit by hand
 

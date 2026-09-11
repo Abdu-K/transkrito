@@ -1,37 +1,45 @@
 import AppKit
 import SwiftUI
 
-/// A regular macOS app: dock icon, app menu, resizable main window, Settings on ⌘, and a secondary menu bar item
-/// for status + hotkey while another app is in front. LSUIElement is intentionally absent from Info.plist.
+/// A regular macOS app: dock icon, app menu, resizable main window, Settings on ⌘, (in-window page, same layout
+/// as the Windows build), and a secondary menu bar item for status + hotkey while another app is in front.
+/// LSUIElement is intentionally absent from Info.plist.
 @main
 struct TranskritoApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     @State private var app = AppController()
+    @State private var page: Page = .dictation
 
     var body: some Scene {
         Window("Transkrito", id: "main") {
-            MainWindow()
+            MainWindow(page: $page)
                 .environment(app)
+                .preferredColorScheme(.dark)
         }
         .defaultSize(width: Tokens.Layout.windowDefaultWidth, height: Tokens.Layout.windowDefaultHeight)
         .windowResizability(.contentMinSize)
+        .windowStyle(.hiddenTitleBar)
         .commands {
             CommandGroup(replacing: .newItem) {}
+            CommandGroup(replacing: .appSettings) {
+                Button("Settings\u{2026}") { page = .settings; NSApp.activate(ignoringOtherApps: true) }
+                    .keyboardShortcut(",", modifiers: .command)
+            }
+            CommandMenu("View") {
+                Button("Dictation") { page = .dictation }.keyboardShortcut("1", modifiers: .command)
+                Button("Dictionary") { page = .dictionary }.keyboardShortcut("2", modifiers: .command)
+                Button("Settings") { page = .settings }.keyboardShortcut("3", modifiers: .command)
+            }
             CommandMenu("Listening") {
                 Button(app.actionLabel) { app.toggle() }
                     .disabled(app.isTranscribing)
                 Divider()
-                Text("Global hotkey: \(app.settings.hotkey.display)")
+                Text("\(app.holdToTalkVerb) \(app.settings.hotkey.display) anywhere")
             }
         }
 
-        Settings {
-            SettingsView()
-                .environment(app)
-        }
-
         MenuBarExtra {
-            MenuBarView()
+            MenuBarView(page: $page)
                 .environment(app)
         } label: {
             Image(systemName: menuBarSymbol)
@@ -61,20 +69,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 struct MenuBarView: View {
     @Environment(AppController.self) private var app
     @Environment(\.openWindow) private var openWindow
-    @Environment(\.openSettings) private var openSettings
+    @Binding var page: Page
 
     var body: some View {
         Text(app.status)
-        Button("\(app.actionLabel) Listening") { app.toggle() }
+        Button("\(app.actionLabel) listening") { app.toggle() }
             .disabled(app.isTranscribing)
-        Text(app.settings.hotkey.display)
+        Text("\(app.holdToTalkVerb) \(app.settings.hotkey.display)")
         Divider()
         Button("Open Transkrito") {
             openWindow(id: "main")
             NSApp.activate(ignoringOtherApps: true)
         }
         Button("Settings\u{2026}") {
-            openSettings()
+            page = .settings
+            openWindow(id: "main")
             NSApp.activate(ignoringOtherApps: true)
         }
         Divider()

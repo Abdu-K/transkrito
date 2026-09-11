@@ -172,6 +172,8 @@ enum Tokens {
         static let timeColumn: CGFloat = 56
         static let timeBaselineOffset: CGFloat = 3
         static let rowGap: CGFloat = 2
+        static let statusDot: CGFloat = 8
+        static let dayHeaderTracking: CGFloat = 0.6
     }
     static let biasMaxTerms = 40
 }

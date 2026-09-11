@@ -10,3 +10,4 @@ macos/.swiftpm/
 # misc
 .DS_Store
 Thumbs.db
+.impeccable/review/

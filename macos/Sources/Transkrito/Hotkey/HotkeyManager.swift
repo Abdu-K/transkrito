@@ -1,7 +1,8 @@
 import Carbon.HIToolbox
 import Foundation
 
-/// Global hotkey via Carbon `RegisterEventHotKey`. Works while any app is in front and needs no Accessibility grant.
+/// Global hotkey via Carbon `RegisterEventHotKey`, with press and release events (hold-to-talk).
+/// Works while any app is in front and needs no Accessibility grant.
 @MainActor
 final class HotkeyManager {
     private var hotKeyRef: EventHotKeyRef?
@@ -10,20 +11,27 @@ final class HotkeyManager {
     private static let id: UInt32 = 1
 
     var onPressed: (() -> Void)?
+    var onReleased: (() -> Void)?
     private(set) var lastError: String?
 
     init() {
-        var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
+        var specs = [
+            EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed)),
+            EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyReleased)),
+        ]
         let selfPtr = Unmanaged.passUnretained(self).toOpaque()
         InstallEventHandler(GetApplicationEventTarget(), { _, event, userData in
             var hk = EventHotKeyID()
             GetEventParameter(event, EventParamName(kEventParamDirectObject), EventParamType(typeEventHotKeyID),
                               nil, MemoryLayout<EventHotKeyID>.size, nil, &hk)
-            guard hk.signature == HotkeyManager.signature, let userData else { return noErr }
+            guard hk.signature == HotkeyManager.signature, let userData, let event else { return noErr }
             let manager = Unmanaged<HotkeyManager>.fromOpaque(userData).takeUnretainedValue()
-            Task { @MainActor in manager.onPressed?() }
+            let kind = GetEventKind(event)
+            Task { @MainActor in
+                if kind == UInt32(kEventHotKeyPressed) { manager.onPressed?() } else { manager.onReleased?() }
+            }
             return noErr
-        }, 1, &spec, selfPtr, &handlerRef)
+        }, 2, &specs, selfPtr, &handlerRef)
     }
 
     @discardableResult
