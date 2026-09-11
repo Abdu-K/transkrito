@@ -1,0 +1,115 @@
+<UserControl x:Class="Transkrito.Views.SettingsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="clr-namespace:Transkrito.Design">
+    <UserControl.Resources>
+        <Style x:Key="Label" TargetType="TextBlock" BasedOn="{StaticResource Text.Body}">
+            <Setter Property="Foreground" Value="{StaticResource Brush.InkSecondary}" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="Margin" Value="{StaticResource Pad.Field}" />
+        </Style>
+        <Style x:Key="Section" TargetType="StackPanel">
+            <Setter Property="Margin" Value="{StaticResource Pad.Below.S5}" />
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="{StaticResource Pad.Page}" MaxWidth="{StaticResource Layout.Content.MaxWidth}" HorizontalAlignment="Left">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" Style="{StaticResource Text.Title}" Text="Settings" />
+
+            <Grid Grid.Row="1" Margin="{StaticResource Pad.Below.S5}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" MinWidth="{StaticResource Comp.SettingsLabelWidth}" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Hotkey -->
+                <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource Label}" Text="Hotkey" />
+                <StackPanel Grid.Row="0" Grid.Column="1" Style="{StaticResource Section}" Margin="0">
+                    <TextBox x:Name="HotkeyBox" Style="{StaticResource Field}" IsReadOnly="True" Cursor="Hand"
+                             d:FieldHelper.Placeholder="Click, then press a combination" PreviewKeyDown="OnHotkeyKey"
+                             GotKeyboardFocus="OnHotkeyFocus" LostKeyboardFocus="OnHotkeyBlur" />
+                    <TextBlock x:Name="HotkeyHint" Style="{StaticResource Text.Caption}" Margin="{StaticResource Pad.Below.S1}" Text="Works in any app. Esc cancels." />
+                    <Border Style="{StaticResource Segmented}" Margin="{StaticResource Pad.Below.S3}">
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton x:Name="ModeHold" Style="{StaticResource Toggle.Segment}" Content="Hold to talk" GroupName="Mode" Checked="OnModeChanged" />
+                            <RadioButton x:Name="ModeToggle" Style="{StaticResource Toggle.Segment}" Content="Press to toggle" GroupName="Mode" Checked="OnModeChanged" />
+                        </StackPanel>
+                    </Border>
+                    <TextBlock x:Name="ModeHint" Style="{StaticResource Text.Caption}" Margin="{StaticResource Pad.Below.S1}" />
+                </StackPanel>
+
+                <!-- Microphone -->
+                <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource Label}" Text="Microphone" Margin="{StaticResource Pad.LabelNext}" />
+                <StackPanel Grid.Row="1" Grid.Column="1" Style="{StaticResource Section}">
+                    <ComboBox x:Name="DeviceBox" Style="{StaticResource Combo}" SelectionChanged="OnDeviceChanged" DropDownOpened="OnDeviceOpened" />
+                    <TextBlock Style="{StaticResource Text.Caption}" Margin="{StaticResource Pad.Below.S1}" Text="Any input works; audio is converted to 16 kHz mono for the model." />
+                </StackPanel>
+
+                <!-- Model -->
+                <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource Label}" Text="Model" Margin="{StaticResource Pad.LabelNext}" />
+                <StackPanel Grid.Row="2" Grid.Column="1" Style="{StaticResource Section}">
+                    <ComboBox x:Name="ModelBox" Style="{StaticResource Combo}" SelectionChanged="OnModelChanged">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource Text.Body}" Text="{Binding Name}" />
+                                    <TextBlock Style="{StaticResource Text.Caption}" Text="{Binding Language}" Margin="{StaticResource Pad.Gap.S2}" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <StackPanel Orientation="Horizontal" Margin="{StaticResource Pad.Below.S2}">
+                        <TextBlock x:Name="ModelStatus" Style="{StaticResource Text.Caption}" VerticalAlignment="Center" />
+                        <Button x:Name="DownloadButton" Style="{StaticResource Button.Glass}" Click="OnDownload" Margin="{StaticResource Pad.Gap.S3}">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Style="{StaticResource Icon}" Data="{StaticResource Icon.Download}" Stroke="{StaticResource Brush.InkPrimary}" Width="{StaticResource Comp.IconSizeMd}" Height="{StaticResource Comp.IconSizeMd}" />
+                                <TextBlock Style="{StaticResource Text.Body}" Text="Download" Margin="{StaticResource Pad.Gap.S2}" />
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="CancelButton" Style="{StaticResource Button.Text}" Content="Cancel" Click="OnCancelDownload" Margin="{StaticResource Pad.Gap.S3}" Visibility="Collapsed" />
+                        <Button x:Name="RemoveButton" Style="{StaticResource Button.Text.Danger}" Content="Remove" Click="OnRemoveModel" Margin="{StaticResource Pad.Gap.S3}" Visibility="Collapsed" />
+                    </StackPanel>
+                    <Border x:Name="ProgressTrack" Height="{StaticResource Border.Focus.Width}" Background="{StaticResource Brush.LineGlass1}" CornerRadius="{StaticResource Radius.Pill}"
+                            Margin="{StaticResource Pad.Below.S2}" Visibility="Collapsed">
+                        <Rectangle x:Name="Progress" Fill="{StaticResource Brush.AccentIce}" HorizontalAlignment="Left" Width="0" RadiusX="1" RadiusY="1" />
+                    </Border>
+                    <TextBlock x:Name="BiasStatus" Style="{StaticResource Text.Caption}" Margin="{StaticResource Pad.Below.S2}" />
+                </StackPanel>
+
+                <!-- Insert -->
+                <TextBlock Grid.Row="3" Grid.Column="0" Style="{StaticResource Label}" Text="After transcribing" Margin="{StaticResource Pad.LabelNext}" />
+                <StackPanel Grid.Row="3" Grid.Column="1" Style="{StaticResource Section}">
+                    <CheckBox x:Name="InsertBox" Style="{StaticResource Check}" Content="Insert at the cursor in the app I was using" Checked="OnInsertChanged" Unchecked="OnInsertChanged" />
+                    <TextBlock Style="{StaticResource Text.Caption}" Margin="{StaticResource Pad.Below.S1}" Text="Text is always copied to the clipboard as well." />
+                </StackPanel>
+
+                <!-- Files -->
+                <TextBlock Grid.Row="4" Grid.Column="0" Style="{StaticResource Label}" Text="Files" Margin="{StaticResource Pad.LabelNext}" />
+                <StackPanel Grid.Row="4" Grid.Column="1" Style="{StaticResource Section}">
+                    <TextBlock Style="{StaticResource Text.Caption}" Text="Dictionary, history and settings are plain JSON you can edit by hand. The app picks up changes immediately." />
+                    <StackPanel Orientation="Horizontal" Margin="{StaticResource Pad.Below.S2}">
+                        <Button Style="{StaticResource Button.Glass}" Click="OnOpenFolder">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Style="{StaticResource Icon}" Data="{StaticResource Icon.Folder}" Stroke="{StaticResource Brush.InkPrimary}" Width="{StaticResource Comp.IconSizeMd}" Height="{StaticResource Comp.IconSizeMd}" />
+                                <TextBlock Style="{StaticResource Text.Body}" Text="Open folder" Margin="{StaticResource Pad.Gap.S2}" />
+                            </StackPanel>
+                        </Button>
+                        <TextBlock x:Name="DataPath" Style="{StaticResource Text.Mono}" Margin="{StaticResource Pad.Gap.S3}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

@@ -27,6 +27,7 @@ public sealed class PillarsControl : FrameworkElement
     private readonly Random _rng = new(7);
     private bool _animating;
     private TimeSpan _last;
+    private double _clock; // seconds, for the idle breathing cycle
 
     private static readonly Brush IdleBrush = Freeze(new SolidColorBrush(Tokens.Color.PillarIdle));
     private static readonly Brush GlassBrush = Freeze(new LinearGradientBrush(Tokens.Color.PillarGlassFillTop, Tokens.Color.PillarGlassFillBottom, 90));
@@ -79,9 +80,10 @@ public sealed class PillarsControl : FrameworkElement
         _last = now;
 
         var level = Level;
-        var settled = Step(level, dt);
+        _clock += dt;
+        Step(level, dt);
         InvalidateVisual();
-        if (settled && level <= 0) StopAnimating();
+        // Never settles: at rest the pillars breathe (motion.breathing.idle), so the frame loop stays on while visible.
     }
 
     /// <summary>Advance jitter, heights and glass blend by dt. Returns true when nothing is moving any more.</summary>
@@ -101,8 +103,9 @@ public sealed class PillarsControl : FrameworkElement
                 _jitterTarget[i] = (_rng.NextDouble() * 2 - 1) * Tokens.Pillar.Jitter;
             _jitter[i] += (_jitterTarget[i] - _jitter[i]) * k * 0.5;
 
-            // Resting shape (idleLevel) so the wave reads while silent; voice adds on top of it.
-            var drive = Tokens.Pillar.IdleLevel + (1 - Tokens.Pillar.IdleLevel) * level;
+            // Resting shape (idleLevel) that breathes slowly; voice adds on top of it.
+            var breath = Math.Sin(_clock * 2 * Math.PI * 1000 / Tokens.Motion.BreathingMs) * Tokens.Motion.BreathingAmplitude;
+            var drive = Tokens.Pillar.IdleLevel * (1 + breath) + (1 - Tokens.Pillar.IdleLevel) * level;
             var target = Tokens.Pillar.MinHeight + (Tokens.Pillar.MaxHeight - Tokens.Pillar.MinHeight)
                          * drive * _envelope[i] * (1 + _jitter[i] * Math.Min(1, level * 4));
             _height[i] += (target - _height[i]) * k;
@@ -134,7 +137,7 @@ public sealed class PillarsControl : FrameworkElement
                 {
                     var spread = blur * ring / 3.0;
                     var a = glowAlpha / (ring * 3.0);
-                    var c = Tokens.Color.AccentBase; c.A = (byte)(a * 255);
+                    var c = Tokens.Color.AccentIce; c.A = (byte)(a * 255);
                     var brush = new SolidColorBrush(c); brush.Freeze();
                     dc.DrawRoundedRectangle(brush, null, new Rect(x - spread, cy - h / 2 - spread, w + 2 * spread, h + 2 * spread), r + spread, r + spread);
                 }

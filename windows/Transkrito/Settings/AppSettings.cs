@@ -35,6 +35,13 @@ public sealed class AppSettings
 
     [JsonPropertyName("insertAtCursor")] public bool InsertAtCursor { get; set; } = true;
 
+    /// <summary>"hold" = push-to-talk (default); "toggle" = press to start, press to stop.</summary>
+    [JsonPropertyName("hotkeyMode")] public string HotkeyMode { get; set; } = "hold";
+    [JsonIgnore] public bool HoldToTalk => HotkeyMode != "toggle";
+
+    /// <summary>WASAPI endpoint id; empty = system default.</summary>
+    [JsonPropertyName("inputDevice")] public string InputDevice { get; set; } = "";
+
     public static AppSettings Load()
     {
         try { return JsonFile.Read<AppSettings>(AppPaths.Settings) ?? new AppSettings(); }

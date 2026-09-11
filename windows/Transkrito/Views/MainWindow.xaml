@@ -12,87 +12,78 @@
     <Window.InputBindings>
         <KeyBinding Key="OemComma" Modifiers="Control" Command="{x:Static v:MainWindow.OpenSettings}" />
         <KeyBinding Key="F" Modifiers="Control" Command="{x:Static v:MainWindow.FocusSearch}" />
+        <KeyBinding Key="D1" Modifiers="Control" Command="{x:Static v:MainWindow.GoDictation}" />
+        <KeyBinding Key="D2" Modifiers="Control" Command="{x:Static v:MainWindow.GoDictionary}" />
+        <KeyBinding Key="D3" Modifiers="Control" Command="{x:Static v:MainWindow.OpenSettings}" />
     </Window.InputBindings>
     <Grid>
-        <!-- Atmosphere: deep blue wash behind the visualization, fading out. Token bg.deep. -->
-        <Rectangle IsHitTestVisible="False" Fill="{StaticResource Brush.BgDeepWash}" />
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="{StaticResource Layout.Rail.Width.Length}" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
 
-        <Grid Margin="{StaticResource Pad.S6}">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
+        <!-- Rail -->
+        <Border Grid.Column="0" Background="{StaticResource Brush.BgRail}" BorderBrush="{StaticResource Brush.LineGlass1}" BorderThickness="0,0,1,0">
+            <DockPanel Margin="{StaticResource Pad.Rail}">
+                <!-- Wordmark -->
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="{StaticResource Pad.Field}">
+                    <Path Style="{StaticResource Icon}" Data="{StaticResource Icon.Waveform}" Stroke="{StaticResource Brush.AccentIce}" VerticalAlignment="Center" />
+                    <TextBlock Style="{StaticResource Text.Body}" Text="Transkrito" FontWeight="Medium" Margin="{StaticResource Pad.Gap.S2}" VerticalAlignment="Center" />
+                </StackPanel>
 
-            <!-- Status -->
-            <TextBlock x:Name="StatusText" Grid.Row="0" Text="{Binding Status}" HorizontalAlignment="Center">
-                <TextBlock.Style>
-                    <Style TargetType="TextBlock" BasedOn="{StaticResource Text.Status}">
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding StatusIsError}" Value="True">
-                                <Setter Property="Foreground" Value="{StaticResource Brush.StateDanger}" />
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding IsListening}" Value="True">
-                                <Setter Property="Foreground" Value="{StaticResource Brush.StateRecording}" />
-                                <DataTrigger.EnterActions>
-                                    <BeginStoryboard x:Name="Pulse">
-                                        <Storyboard RepeatBehavior="Forever" AutoReverse="True">
-                                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                                                             From="{StaticResource Motion.StatusPulse.Max}" To="{StaticResource Motion.StatusPulse.Min}"
-                                                             Duration="{StaticResource Motion.StatusPulse}">
-                                                <DoubleAnimation.EasingFunction>
-                                                    <SineEase EasingMode="EaseInOut" />
-                                                </DoubleAnimation.EasingFunction>
-                                            </DoubleAnimation>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </DataTrigger.EnterActions>
-                                <DataTrigger.ExitActions>
-                                    <StopStoryboard BeginStoryboardName="Pulse" />
-                                </DataTrigger.ExitActions>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </TextBlock.Style>
-            </TextBlock>
+                <!-- Status at the bottom: what the app is doing + the hotkey, always visible -->
+                <StackPanel DockPanel.Dock="Bottom" Margin="{StaticResource Pad.Field}">
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse x:Name="StatusDot" Width="8" Height="8" VerticalAlignment="Center" Fill="{StaticResource Brush.InkTertiary}">
+                            <Ellipse.Style>
+                                <Style TargetType="Ellipse">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsListening}" Value="True">
+                                            <Setter Property="Fill" Value="{StaticResource Brush.StateRecording}" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsTranscribing}" Value="True">
+                                            <Setter Property="Fill" Value="{StaticResource Brush.AccentBase}" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding StatusIsError}" Value="True">
+                                            <Setter Property="Fill" Value="{StaticResource Brush.StateDanger}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Ellipse.Style>
+                        </Ellipse>
+                        <TextBlock Text="{Binding Status}" Margin="{StaticResource Pad.Gap.S2}" VerticalAlignment="Center">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource Text.Caption}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding StatusIsError}" Value="True">
+                                            <Setter Property="Foreground" Value="{StaticResource Brush.StateDanger}" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsListening}" Value="True">
+                                            <Setter Property="Foreground" Value="{StaticResource Brush.StateRecording}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </StackPanel>
+                    <v:HotkeyCaps Margin="{StaticResource Pad.Below.S2}" />
+                </StackPanel>
 
-            <!-- Visualization -->
-            <v:PillarsControl Grid.Row="1" Height="{StaticResource Comp.PillarsAreaHeight}" Margin="{StaticResource Pad.S4}"
-                              HorizontalAlignment="Center" Level="{Binding Level}" />
+                <!-- Navigation -->
+                <StackPanel Margin="{StaticResource Pad.Below.S5}">
+                    <RadioButton x:Name="NavDictation" Style="{StaticResource Nav.Item}" Content="Dictation" Tag="{StaticResource Icon.Mic}" GroupName="Nav" IsChecked="True" Checked="OnNav" />
+                    <RadioButton x:Name="NavDictionary" Style="{StaticResource Nav.Item}" Content="Dictionary" Tag="{StaticResource Icon.Book}" GroupName="Nav" Checked="OnNav" Margin="{StaticResource Pad.Below.S1}" />
+                    <RadioButton x:Name="NavSettings" Style="{StaticResource Nav.Item}" Content="Settings" Tag="{StaticResource Icon.Sliders}" GroupName="Nav" Checked="OnNav" Margin="{StaticResource Pad.Below.S1}" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
 
-            <!-- Start / Stop + hotkey hint -->
-            <StackPanel Grid.Row="2" HorizontalAlignment="Center" Orientation="Vertical">
-                <Button Style="{StaticResource Button.Pill}" Content="{Binding ActionLabel}" Click="OnToggle" MinWidth="{StaticResource Comp.PillMinWidth}" HorizontalAlignment="Center"
-                        IsEnabled="{Binding IsTranscribing, Converter={StaticResource InverseBool}}" />
-                <TextBlock Text="{Binding HotkeyLabel}" HorizontalAlignment="Center" Margin="{StaticResource Pad.S2}">
-                    <TextBlock.Style>
-                        <Style TargetType="TextBlock" BasedOn="{StaticResource Text.Mono}">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding HotkeyHasError}" Value="True">
-                                    <Setter Property="Foreground" Value="{StaticResource Brush.StateDanger}" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </TextBlock.Style>
-                </TextBlock>
-            </StackPanel>
-
-            <!-- History | Dictionary -->
-            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="{StaticResource Pad.Tabs}">
-                <RadioButton x:Name="TabHistory" Style="{StaticResource Toggle.Text}" Content="History" IsChecked="True" GroupName="Tab" Checked="OnTabChanged" />
-                <RadioButton x:Name="TabDictionary" Style="{StaticResource Toggle.Text}" Content="Dictionary" GroupName="Tab" Margin="{StaticResource Pad.TabGap}" Checked="OnTabChanged" />
-            </StackPanel>
-
-            <Grid Grid.Row="4">
-                <v:HistoryView x:Name="HistoryPane" />
-                <v:DictionaryView x:Name="DictionaryPane" Visibility="Collapsed" />
-            </Grid>
+        <!-- Content -->
+        <Grid Grid.Column="1">
+            <Rectangle IsHitTestVisible="False" Fill="{StaticResource Brush.BgDeepWash}" Visibility="{Binding IsChecked, ElementName=NavDictation, Converter={StaticResource BoolToVis}}" />
+            <v:DictationPage x:Name="PageDictation" />
+            <v:DictionaryPage x:Name="PageDictionary" Visibility="Collapsed" />
+            <v:SettingsPage x:Name="PageSettings" Visibility="Collapsed" />
         </Grid>
-
-        <!-- Quiet footer: settings link -->
-        <Button Style="{StaticResource Button.Text}" Content="Settings" HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                Margin="{StaticResource Pad.S3}" Command="{x:Static v:MainWindow.OpenSettings}" />
     </Grid>
 </Window>

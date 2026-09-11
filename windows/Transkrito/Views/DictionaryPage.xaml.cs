@@ -40,7 +40,7 @@ public sealed class EntryRow : INotifyPropertyChanged
     public string Hear { get => _hear; set { _hear = value; OnChanged(); Recompute(); } }
     public string Write { get => _write; set { _write = value; OnChanged(); Recompute(); } }
 
-    public string HearPlaceholder => IsTerm ? "Word or phrase, e.g. Anthropic" : "When you hear, e.g. cloud code";
+    public string HearPlaceholder => IsTerm ? "Word or phrase, e.g. Anthropic" : "When it hears, e.g. cloud code";
     public string SaveLabel => IsNew ? "Add" : "Save";
     public bool CanSave => Hear.Trim().Length > 0 && (IsTerm || Write.Trim().Length > 0);
     public IReadOnlyList<DictionaryWarning> Warnings { get; private set; } = Array.Empty<DictionaryWarning>();
@@ -66,21 +66,20 @@ public sealed class EntryRow : INotifyPropertyChanged
     private void OnChanged([CallerMemberName] string? n = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
 }
 
-public partial class DictionaryView : UserControl, ISearchable, INotifyPropertyChanged
+public partial class DictionaryPage : UserControl, ISearchable, INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
     private AppController? _app;
     private EntryRow? _add;
 
-    public DictionaryView()
+    public DictionaryPage()
     {
         InitializeComponent();
         DataContextChanged += (_, _) => Attach();
     }
 
-    public bool IsEmpty => List.Items.Count == 0;
-    public string EmptyMessage => string.IsNullOrWhiteSpace(SearchBox.Text)
-        ? "Teach it the words it gets wrong: names, jargon, products, people."
+    public string EmptyMessage => string.IsNullOrWhiteSpace(SearchBox.Text) && FilterAll.IsChecked == true
+        ? "Nothing here yet. Add the first word above."
         : "No matches.";
 
     private void Attach()
@@ -96,14 +95,19 @@ public partial class DictionaryView : UserControl, ISearchable, INotifyPropertyC
     private void Refresh()
     {
         if (_app is null) return;
-        List.ItemsSource = _app.Dictionary.Search(SearchBox.Text).Select(e => new EntryRow(_app.Dictionary, e)).ToList();
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsEmpty)));
+        var entries = _app.Dictionary.Search(SearchBox.Text);
+        if (FilterWords?.IsChecked == true) entries = entries.Where(e => e.IsTerm);
+        else if (FilterCorrections?.IsChecked == true) entries = entries.Where(e => !e.IsTerm);
+        var rows = entries.Select(e => new EntryRow(_app.Dictionary, e)).ToList();
+        List.ItemsSource = rows;
+        Empty.Visibility = rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(EmptyMessage)));
     }
 
-    private void OnSearchChanged(object sender, TextChangedEventArgs e) => Refresh();
+    private void OnFilterChanged(object sender, RoutedEventArgs e) => Refresh();
 
-    private static EntryRow? RowOf(object sender) => (sender as FrameworkElement)?.Tag as EntryRow ?? (sender as FrameworkElement)?.DataContext as EntryRow;
+    private static EntryRow? RowOf(object sender) =>
+        (sender as Button)?.CommandParameter as EntryRow ?? (sender as FrameworkElement)?.Tag as EntryRow ?? (sender as FrameworkElement)?.DataContext as EntryRow;
 
     private void OnSave(object sender, RoutedEventArgs e)
     {

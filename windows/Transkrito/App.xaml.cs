@@ -11,7 +11,6 @@ public partial class App : Application
 {
     private AppController? _app;
     private MainWindow? _main;
-    private SettingsWindow? _settings;
     private TrayIcon? _tray;
     private HotkeyManager? _hotkey;
     private Mutex? _single;
@@ -42,7 +41,8 @@ public partial class App : Application
         _main = new MainWindow(_app);
 
         _hotkey = new HotkeyManager();
-        _hotkey.Pressed += () => _app.Toggle();
+        _hotkey.Pressed += () => _app.HotkeyDown();
+        _hotkey.Released += () => _app.HotkeyUp();
         ApplyHotkey(_app.Settings.Hotkey);
 
         _tray = new TrayIcon(_app);
@@ -70,17 +70,13 @@ public partial class App : Application
 
     public void ShowSettings()
     {
-        if (_app is null) return;
-        if (_settings is { IsLoaded: true }) { _settings.Activate(); return; }
         ShowMain();
-        _settings = new SettingsWindow(_app, ApplyHotkey) { Owner = _main };
-        _settings.Show();
+        _main?.ShowSettings();
     }
 
     public void Quit()
     {
         IsQuitting = true;
-        _settings?.Close();
         _main?.Close();
         Shutdown();
     }

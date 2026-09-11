@@ -55,4 +55,10 @@ public static class FieldHelper
         "Placeholder", typeof(string), typeof(FieldHelper), new PropertyMetadata(string.Empty));
     public static string GetPlaceholder(DependencyObject d) => (string)d.GetValue(PlaceholderProperty);
     public static void SetPlaceholder(DependencyObject d, string v) => d.SetValue(PlaceholderProperty, v);
+
+    /// <summary>Optional leading icon geometry (from the Icon.* resources).</summary>
+    public static readonly DependencyProperty IconProperty = DependencyProperty.RegisterAttached(
+        "Icon", typeof(System.Windows.Media.Geometry), typeof(FieldHelper), new PropertyMetadata(null));
+    public static System.Windows.Media.Geometry? GetIcon(DependencyObject d) => (System.Windows.Media.Geometry?)d.GetValue(IconProperty);
+    public static void SetIcon(DependencyObject d, System.Windows.Media.Geometry? v) => d.SetValue(IconProperty, v);
 }

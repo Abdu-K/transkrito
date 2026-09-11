@@ -8,19 +8,29 @@ using Transkrito.Storage;
 
 namespace Transkrito.Views;
 
-public partial class SettingsWindow : Window
+public partial class SettingsPage : UserControl
 {
-    private readonly AppController _app;
-    private readonly Action<HotkeySetting> _applyHotkey;
+    private AppController? _app;
     private CancellationTokenSource? _download;
     private bool _loading = true;
 
-    public SettingsWindow(AppController app, Action<HotkeySetting> applyHotkey)
+    public SettingsPage()
     {
-        _app = app;
-        _applyHotkey = applyHotkey;
         InitializeComponent();
+        DataContextChanged += (_, _) => Attach();
+    }
+
+    private void Attach()
+    {
+        if (DataContext is not AppController app || ReferenceEquals(app, _app)) return;
+        _app = app;
+        app.PropertyChanged += (_, ev) => { if (ev.PropertyName == nameof(AppController.Status)) RefreshModelStatus(); };
+        _loading = true;
         HotkeyBox.Text = app.Settings.Hotkey.Display();
+        ModeHold.IsChecked = app.HoldToTalk;
+        ModeToggle.IsChecked = !app.HoldToTalk;
+        UpdateModeHint();
+        FillDevices();
         ModelBox.ItemsSource = ModelCatalog.All;
         ModelBox.SelectedItem = app.Model;
         InsertBox.IsChecked = app.Settings.InsertAtCursor;
@@ -29,16 +39,18 @@ public partial class SettingsWindow : Window
         _loading = false;
     }
 
-    // ---- Hotkey recorder ----
+    // ---- Hotkey ----
     private void OnHotkeyFocus(object sender, KeyboardFocusChangedEventArgs e) { HotkeyBox.Text = ""; HotkeyHint.Text = "Press a combination… Esc cancels."; }
     private void OnHotkeyBlur(object sender, KeyboardFocusChangedEventArgs e)
     {
+        if (_app is null) return;
         HotkeyBox.Text = _app.Settings.Hotkey.Display();
-        HotkeyHint.Text = "Press to start listening, press again to stop.";
+        HotkeyHint.Text = "Works in any app. Esc cancels.";
     }
 
     private void OnHotkeyKey(object sender, KeyEventArgs e)
     {
+        if (_app is null) return;
         e.Handled = true;
         var key = e.Key == Key.System ? e.SystemKey : e.Key;
         if (key == Key.Escape) { Keyboard.ClearFocus(); return; }
@@ -59,8 +71,43 @@ public partial class SettingsWindow : Window
         _app.Settings.Hotkey = hk;
         _app.Settings.Save();
         _app.HotkeyChanged();
-        _applyHotkey(hk);
+        ((App)Application.Current).ApplyHotkey(hk);
         Keyboard.ClearFocus();
+    }
+
+    private void OnModeChanged(object sender, RoutedEventArgs e)
+    {
+        if (_loading || _app is null) return;
+        _app.HoldToTalk = ModeHold.IsChecked == true;
+        UpdateModeHint();
+    }
+
+    private void UpdateModeHint() =>
+        ModeHint.Text = ModeHold.IsChecked == true
+            ? "Hold the keys while you speak; let go and the text is pasted."
+            : "Press once to start, press again to stop.";
+
+    // ---- Microphone ----
+    private void FillDevices()
+    {
+        if (_app is null) return;
+        var devices = AudioCapture.Devices();
+        DeviceBox.ItemsSource = devices;
+        DeviceBox.SelectedItem = devices.FirstOrDefault(d => d.Id == _app.Settings.InputDevice) ?? devices[0];
+    }
+
+    private void OnDeviceOpened(object sender, EventArgs e)
+    {
+        // Re-enumerate so a mic plugged in after launch shows up.
+        var wasLoading = _loading; _loading = true;
+        FillDevices();
+        _loading = wasLoading;
+    }
+
+    private void OnDeviceChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading || _app is null || DeviceBox.SelectedItem is not MicDevice d) return;
+        _app.InputDeviceId = d.Id;
     }
 
     // ---- Model ----
@@ -68,33 +115,36 @@ public partial class SettingsWindow : Window
 
     private void OnModelChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (_loading) return;
+        if (_loading || _app is null) return;
         _app.Model = Selected;
         RefreshModelStatus();
     }
 
     private void RefreshModelStatus()
     {
+        if (_app is null) return;
         var m = Selected;
         var installed = m.IsInstalled;
-        ModelStatus.Text = installed ? "Downloaded" : "Not downloaded (about 470 MB)";
+        ModelStatus.Text = installed ? "Downloaded · on this PC" : "Not downloaded (about 470 MB)";
         DownloadButton.Visibility = installed || _download is not null ? Visibility.Collapsed : Visibility.Visible;
         RemoveButton.Visibility = installed && _download is null ? Visibility.Visible : Visibility.Collapsed;
         CancelButton.Visibility = _download is not null ? Visibility.Visible : Visibility.Collapsed;
+        ProgressTrack.Visibility = _download is not null ? Visibility.Visible : Visibility.Collapsed;
         BiasStatus.Text = _app.Engine.BiasStatus;
     }
 
     private async void OnDownload(object sender, RoutedEventArgs e)
     {
+        if (_app is null) return;
         var m = Selected;
         _download = new CancellationTokenSource();
         RefreshModelStatus();
         var progress = new Progress<(long done, long total)>(p =>
         {
-            if (p.done < 0) { ModelStatus.Text = "Extracting…"; Progress.Width = ActualWidth; return; }
+            if (p.done < 0) { ModelStatus.Text = "Extracting…"; Progress.Width = ProgressTrack.ActualWidth; return; }
             var frac = p.total > 0 ? (double)p.done / p.total : 0;
             ModelStatus.Text = p.total > 0 ? $"Downloading {p.done / 1048576} / {p.total / 1048576} MB" : $"Downloading {p.done / 1048576} MB";
-            Progress.Width = Math.Max(0, (ModelBox.ActualWidth) * frac);
+            Progress.Width = Math.Max(0, ProgressTrack.ActualWidth * frac);
         });
         try
         {
@@ -115,17 +165,18 @@ public partial class SettingsWindow : Window
 
     private void OnRemoveModel(object sender, RoutedEventArgs e)
     {
+        if (_app is null) return;
         var m = Selected;
         if (_app.Model.Id == m.Id) _app.Engine.Dispose();
         try { ModelManager.Delete(m); } catch (Exception ex) { ModelStatus.Text = ex.Message; }
         RefreshModelStatus();
-        if (_app.Model.Id == m.Id) _app.SetStatus("Model not downloaded. Open Settings to download it.", error: true);
+        if (_app.Model.Id == m.Id) _app.SetStatus("Model not downloaded — open Settings", error: true);
     }
 
     // ---- Insert ----
     private void OnInsertChanged(object sender, RoutedEventArgs e)
     {
-        if (_loading) return;
+        if (_loading || _app is null) return;
         _app.Settings.InsertAtCursor = InsertBox.IsChecked == true;
         _app.Settings.Save();
     }

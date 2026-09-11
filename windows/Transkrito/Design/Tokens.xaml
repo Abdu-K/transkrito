@@ -4,38 +4,54 @@
                     xmlns:sys="clr-namespace:System;assembly=mscorlib">
 
   <!-- Color -->
-  <Color x:Key="Color.BgTop">#FFD3E3F4</Color>
-  <Color x:Key="Color.BgBottom">#FFF2F6FB</Color>
-  <Color x:Key="Color.BgDeep">#2E1E3F66</Color>
-  <Color x:Key="Color.InkPrimary">#FF24364D</Color>
-  <Color x:Key="Color.InkSecondary">#FF5B6E86</Color>
-  <Color x:Key="Color.InkTertiary">#FF8A9BB0</Color>
-  <Color x:Key="Color.InkInverse">#FFF4F8FC</Color>
-  <Color x:Key="Color.AccentBase">#FF4A8BD6</Color>
-  <Color x:Key="Color.AccentSoft">#FF9CC4EA</Color>
-  <Color x:Key="Color.AccentPale">#FFD6E6F7</Color>
-  <Color x:Key="Color.PillarIdle">#1A24364D</Color>
-  <Color x:Key="Color.PillarGlassFillTop">#C7B9D7F3</Color>
-  <Color x:Key="Color.PillarGlassFillBottom">#9E8FBCE9</Color>
-  <Color x:Key="Color.PillarGlassHighlight">#8CFFFFFF</Color>
-  <Color x:Key="Color.PillarGlassEdge">#596FA6DF</Color>
-  <Color x:Key="Color.FieldBg">#80FFFFFF</Color>
-  <Color x:Key="Color.FieldBorder">#1A24364D</Color>
-  <Color x:Key="Color.LineHairline">#1424364D</Color>
-  <Color x:Key="Color.StateDanger">#FFC2544A</Color>
-  <Color x:Key="Color.StateWarning">#FFB7791F</Color>
-  <Color x:Key="Color.StateRecording">#FF4A8BD6</Color>
+  <Color x:Key="Color.BgTop">#FF0B1E3D</Color>
+  <Color x:Key="Color.BgBottom">#FF050A14</Color>
+  <Color x:Key="Color.BgDeep">#247DD3FC</Color>
+  <Color x:Key="Color.BgRail">#8C050A14</Color>
+  <Color x:Key="Color.InkPrimary">#EBF0F8FF</Color>
+  <Color x:Key="Color.InkSecondary">#A3F0F8FF</Color>
+  <Color x:Key="Color.InkTertiary">#66F0F8FF</Color>
+  <Color x:Key="Color.InkInverse">#FFF0F8FF</Color>
+  <Color x:Key="Color.AccentBase">#FF3B82F6</Color>
+  <Color x:Key="Color.AccentStrong">#FF1C4ED8</Color>
+  <Color x:Key="Color.AccentIce">#FF7DD3FC</Color>
+  <Color x:Key="Color.AccentPale">#2E3B82F6</Color>
+  <Color x:Key="Color.SurfaceGlass1">#0FF0F8FF</Color>
+  <Color x:Key="Color.SurfaceGlass2">#1AF0F8FF</Color>
+  <Color x:Key="Color.SurfaceGlass3">#29F0F8FF</Color>
+  <Color x:Key="Color.LineGlass1">#1AF0F8FF</Color>
+  <Color x:Key="Color.LineGlass2">#33F0F8FF</Color>
+  <Color x:Key="Color.LineGlassStrong">#66F0F8FF</Color>
+  <Color x:Key="Color.PillarIdle">#2EF0F8FF</Color>
+  <Color x:Key="Color.PillarGlassFillTop">#F27DD3FC</Color>
+  <Color x:Key="Color.PillarGlassFillBottom">#F21C4ED8</Color>
+  <Color x:Key="Color.PillarGlassHighlight">#B2FFFFFF</Color>
+  <Color x:Key="Color.PillarGlassEdge">#737DD3FC</Color>
+  <Color x:Key="Color.FieldBg">#0FF0F8FF</Color>
+  <Color x:Key="Color.FieldBorder">#1AF0F8FF</Color>
+  <Color x:Key="Color.StateDanger">#FFF87171</Color>
+  <Color x:Key="Color.StateWarning">#FFFBBF24</Color>
+  <Color x:Key="Color.StateRecording">#FF7DD3FC</Color>
+  <Color x:Key="Color.StateSuccess">#FF7DD3FC</Color>
 
   <SolidColorBrush x:Key="Brush.BgTop" Color="{StaticResource Color.BgTop}" />
   <SolidColorBrush x:Key="Brush.BgBottom" Color="{StaticResource Color.BgBottom}" />
   <SolidColorBrush x:Key="Brush.BgDeep" Color="{StaticResource Color.BgDeep}" />
+  <SolidColorBrush x:Key="Brush.BgRail" Color="{StaticResource Color.BgRail}" />
   <SolidColorBrush x:Key="Brush.InkPrimary" Color="{StaticResource Color.InkPrimary}" />
   <SolidColorBrush x:Key="Brush.InkSecondary" Color="{StaticResource Color.InkSecondary}" />
   <SolidColorBrush x:Key="Brush.InkTertiary" Color="{StaticResource Color.InkTertiary}" />
   <SolidColorBrush x:Key="Brush.InkInverse" Color="{StaticResource Color.InkInverse}" />
   <SolidColorBrush x:Key="Brush.AccentBase" Color="{StaticResource Color.AccentBase}" />
-  <SolidColorBrush x:Key="Brush.AccentSoft" Color="{StaticResource Color.AccentSoft}" />
+  <SolidColorBrush x:Key="Brush.AccentStrong" Color="{StaticResource Color.AccentStrong}" />
+  <SolidColorBrush x:Key="Brush.AccentIce" Color="{StaticResource Color.AccentIce}" />
   <SolidColorBrush x:Key="Brush.AccentPale" Color="{StaticResource Color.AccentPale}" />
+  <SolidColorBrush x:Key="Brush.SurfaceGlass1" Color="{StaticResource Color.SurfaceGlass1}" />
+  <SolidColorBrush x:Key="Brush.SurfaceGlass2" Color="{StaticResource Color.SurfaceGlass2}" />
+  <SolidColorBrush x:Key="Brush.SurfaceGlass3" Color="{StaticResource Color.SurfaceGlass3}" />
+  <SolidColorBrush x:Key="Brush.LineGlass1" Color="{StaticResource Color.LineGlass1}" />
+  <SolidColorBrush x:Key="Brush.LineGlass2" Color="{StaticResource Color.LineGlass2}" />
+  <SolidColorBrush x:Key="Brush.LineGlassStrong" Color="{StaticResource Color.LineGlassStrong}" />
   <SolidColorBrush x:Key="Brush.PillarIdle" Color="{StaticResource Color.PillarIdle}" />
   <SolidColorBrush x:Key="Brush.PillarGlassFillTop" Color="{StaticResource Color.PillarGlassFillTop}" />
   <SolidColorBrush x:Key="Brush.PillarGlassFillBottom" Color="{StaticResource Color.PillarGlassFillBottom}" />
@@ -43,10 +59,10 @@
   <SolidColorBrush x:Key="Brush.PillarGlassEdge" Color="{StaticResource Color.PillarGlassEdge}" />
   <SolidColorBrush x:Key="Brush.FieldBg" Color="{StaticResource Color.FieldBg}" />
   <SolidColorBrush x:Key="Brush.FieldBorder" Color="{StaticResource Color.FieldBorder}" />
-  <SolidColorBrush x:Key="Brush.LineHairline" Color="{StaticResource Color.LineHairline}" />
   <SolidColorBrush x:Key="Brush.StateDanger" Color="{StaticResource Color.StateDanger}" />
   <SolidColorBrush x:Key="Brush.StateWarning" Color="{StaticResource Color.StateWarning}" />
   <SolidColorBrush x:Key="Brush.StateRecording" Color="{StaticResource Color.StateRecording}" />
+  <SolidColorBrush x:Key="Brush.StateSuccess" Color="{StaticResource Color.StateSuccess}" />
 
   <LinearGradientBrush x:Key="Brush.BgGradient" StartPoint="0,0" EndPoint="0,1">
     <GradientStop Color="{StaticResource Color.BgTop}" Offset="0" />
@@ -58,10 +74,10 @@
   </LinearGradientBrush>
 
   <!-- Type -->
-  <FontFamily x:Key="Font.Sans">Segoe UI Variable, Segoe UI</FontFamily>
+  <FontFamily x:Key="Font.Sans">Segoe UI Variable Text, Segoe UI</FontFamily>
   <FontFamily x:Key="Font.Mono">Cascadia Mono, Consolas</FontFamily>
-  <sys:Double x:Key="Type.Caption.Size">11</sys:Double>
-  <sys:Double x:Key="Type.Caption.Line">14</sys:Double>
+  <sys:Double x:Key="Type.Caption.Size">12</sys:Double>
+  <sys:Double x:Key="Type.Caption.Line">16</sys:Double>
   <FontWeight x:Key="Type.Caption.Weight">Normal</FontWeight>
   <sys:Double x:Key="Type.Body.Size">13</sys:Double>
   <sys:Double x:Key="Type.Body.Line">18</sys:Double>
@@ -69,15 +85,15 @@
   <sys:Double x:Key="Type.Transcript.Size">15</sys:Double>
   <sys:Double x:Key="Type.Transcript.Line">22</sys:Double>
   <FontWeight x:Key="Type.Transcript.Weight">Normal</FontWeight>
-  <sys:Double x:Key="Type.Status.Size">15</sys:Double>
+  <sys:Double x:Key="Type.Status.Size">14</sys:Double>
   <sys:Double x:Key="Type.Status.Line">20</sys:Double>
   <FontWeight x:Key="Type.Status.Weight">Medium</FontWeight>
-  <sys:Double x:Key="Type.Title.Size">20</sys:Double>
-  <sys:Double x:Key="Type.Title.Line">26</sys:Double>
+  <sys:Double x:Key="Type.Title.Size">28</sys:Double>
+  <sys:Double x:Key="Type.Title.Line">34</sys:Double>
   <FontWeight x:Key="Type.Title.Weight">Medium</FontWeight>
   <sys:Double x:Key="Type.Mono.Size">12</sys:Double>
   <sys:Double x:Key="Type.Mono.Line">16</sys:Double>
-  <FontWeight x:Key="Type.Mono.Weight">Normal</FontWeight>
+  <FontWeight x:Key="Type.Mono.Weight">Medium</FontWeight>
 
   <!-- Space -->
   <sys:Double x:Key="Space.S1">4</sys:Double>
@@ -98,52 +114,85 @@
   <Thickness x:Key="Pad.S8">64</Thickness>
 
   <!-- Radius -->
-  <CornerRadius x:Key="Radius.Sm">6</CornerRadius>
-  <sys:Double x:Key="Radius.Sm.Value">6</sys:Double>
-  <CornerRadius x:Key="Radius.Md">10</CornerRadius>
-  <sys:Double x:Key="Radius.Md.Value">10</sys:Double>
-  <CornerRadius x:Key="Radius.Lg">14</CornerRadius>
-  <sys:Double x:Key="Radius.Lg.Value">14</sys:Double>
+  <CornerRadius x:Key="Radius.Sm">8</CornerRadius>
+  <sys:Double x:Key="Radius.Sm.Value">8</sys:Double>
+  <CornerRadius x:Key="Radius.Md">12</CornerRadius>
+  <sys:Double x:Key="Radius.Md.Value">12</sys:Double>
+  <CornerRadius x:Key="Radius.Lg">16</CornerRadius>
+  <sys:Double x:Key="Radius.Lg.Value">16</sys:Double>
+  <CornerRadius x:Key="Radius.Xl">24</CornerRadius>
+  <sys:Double x:Key="Radius.Xl.Value">24</sys:Double>
   <CornerRadius x:Key="Radius.Pill">999</CornerRadius>
   <sys:Double x:Key="Radius.Pill.Value">999</sys:Double>
 
   <!-- Border -->
   <Thickness x:Key="Border.Hairline">1</Thickness>
   <Thickness x:Key="Border.Field">1</Thickness>
+  <Thickness x:Key="Border.Raised">1</Thickness>
   <Thickness x:Key="Border.Focus">1.5</Thickness>
   <Thickness x:Key="Border.Warning">1</Thickness>
 
   <!-- Border widths as doubles -->
   <sys:Double x:Key="Border.Hairline.Width">1</sys:Double>
   <sys:Double x:Key="Border.Field.Width">1</sys:Double>
+  <sys:Double x:Key="Border.Raised.Width">1</sys:Double>
   <sys:Double x:Key="Border.Focus.Width">1.5</sys:Double>
   <sys:Double x:Key="Border.Warning.Width">1</sys:Double>
 
   <!-- Shadow -->
-  <sys:Double x:Key="Shadow.Menu.Blur">8</sys:Double>
-  <sys:Double x:Key="Shadow.Menu.Depth">2</sys:Double>
-  <sys:Double x:Key="Shadow.Menu.Alpha">0.08</sys:Double>
-  <sys:Double x:Key="Shadow.Glow.Blur">14</sys:Double>
+  <sys:Double x:Key="Shadow.Menu.Blur">12</sys:Double>
+  <sys:Double x:Key="Shadow.Menu.Depth">4</sys:Double>
+  <sys:Double x:Key="Shadow.Menu.Alpha">0.45</sys:Double>
+  <sys:Double x:Key="Shadow.Soft.Blur">2</sys:Double>
+  <sys:Double x:Key="Shadow.Soft.Depth">1</sys:Double>
+  <sys:Double x:Key="Shadow.Soft.Alpha">0.3</sys:Double>
+  <sys:Double x:Key="Shadow.Glow.Blur">24</sys:Double>
   <sys:Double x:Key="Shadow.Glow.Depth">0</sys:Double>
-  <sys:Double x:Key="Shadow.Glow.Alpha">0.22</sys:Double>
+  <sys:Double x:Key="Shadow.Glow.Alpha">0.45</sys:Double>
 
   <!-- Component -->
-  <sys:Double x:Key="Comp.FieldPaddingH">10</sys:Double>
-  <sys:Double x:Key="Comp.FieldPaddingV">6</sys:Double>
+  <sys:Double x:Key="Comp.FieldPaddingH">12</sys:Double>
+  <sys:Double x:Key="Comp.FieldPaddingV">8</sys:Double>
   <sys:Double x:Key="Comp.PillHeight">36</sys:Double>
+  <sys:Double x:Key="Comp.PillMinWidth">120</sys:Double>
   <sys:Double x:Key="Comp.CheckSize">16</sys:Double>
   <sys:Double x:Key="Comp.ChipPaddingH">8</sys:Double>
   <sys:Double x:Key="Comp.ChipPaddingV">2</sys:Double>
   <sys:Double x:Key="Comp.ScrollbarWidth">6</sys:Double>
-  <sys:Double x:Key="Comp.PillarsAreaHeight">160</sys:Double>
-  <sys:Double x:Key="Comp.IconSize">14</sys:Double>
-  <sys:Double x:Key="Comp.PillMinWidth">120</sys:Double>
+  <sys:Double x:Key="Comp.PillarsAreaHeight">180</sys:Double>
+  <sys:Double x:Key="Comp.IconSize">16</sys:Double>
   <sys:Double x:Key="Comp.TabGap">24</sys:Double>
   <sys:Double x:Key="Comp.TrayMenuMinWidth">180</sys:Double>
-  <sys:Double x:Key="Comp.SettingsLabelWidth">120</sys:Double>
-  <Thickness x:Key="Pad.Field">10,6</Thickness>
+  <sys:Double x:Key="Comp.SettingsLabelWidth">140</sys:Double>
+  <sys:Double x:Key="Comp.NavItemHeight">36</sys:Double>
+  <sys:Double x:Key="Comp.MicButton">48</sys:Double>
+  <sys:Double x:Key="Comp.RailIconGap">10</sys:Double>
+  <sys:Double x:Key="Comp.IconSizeLg">20</sys:Double>
+  <sys:Double x:Key="Comp.IconSizeMd">14</sys:Double>
+  <sys:Double x:Key="Comp.IconSizeSm">12</sys:Double>
+  <sys:Double x:Key="Comp.IconStroke">1.75</sys:Double>
+  <sys:Double x:Key="Comp.PopupMaxHeight">280</sys:Double>
+  <sys:Double x:Key="Comp.CheckRadius">4</sys:Double>
+  <sys:Double x:Key="Comp.TickSize">11</sys:Double>
+  <sys:Double x:Key="Comp.TimeColumn">56</sys:Double>
+  <sys:Double x:Key="Comp.TimeBaselineOffset">3</sys:Double>
+  <sys:Double x:Key="Comp.RowGap">2</sys:Double>
+  <Thickness x:Key="Pad.Field">12,8</Thickness>
   <Thickness x:Key="Pad.Chip">8,2</Thickness>
   <Thickness x:Key="Pad.PillH">24,0</Thickness>
+  <Thickness x:Key="Pad.Right.S2">0,0,8,0</Thickness>
+  <Thickness x:Key="Pad.Right.S3">0,0,12,0</Thickness>
+  <Thickness x:Key="Pad.Rail">16</Thickness>
+  <Thickness x:Key="Pad.Page">32</Thickness>
+  <Thickness x:Key="Pad.PageX">32,0</Thickness>
+  <Thickness x:Key="Pad.Gap.S4">16,0,0,0</Thickness>
+  <Thickness x:Key="Pad.Below.S4">0,16,0,0</Thickness>
+  <Thickness x:Key="Pad.RowGap">0,0,0,2</Thickness>
+  <Thickness x:Key="Pad.LabelNext">12,32,12,8</Thickness>
+  <Thickness x:Key="Pad.TimeOffset">0,3,0,0</Thickness>
+  <GridLength x:Key="Comp.TimeColumn.Length">56</GridLength>
+  <GridLength x:Key="Layout.Rail.Width.Length">220</GridLength>
+  <CornerRadius x:Key="Radius.Check">4</CornerRadius>
   <Thickness x:Key="Pad.Tabs">0,24,0,12</Thickness>
   <Thickness x:Key="Pad.TabGap">24,0,0,0</Thickness>
   <Thickness x:Key="Pad.RowV">0,12</Thickness>
@@ -155,28 +204,33 @@
   <Thickness x:Key="Pad.Below.S2">0,8,0,0</Thickness>
   <Thickness x:Key="Pad.Below.S3">0,12,0,0</Thickness>
   <Thickness x:Key="Pad.Below.S5">0,24,0,0</Thickness>
-  <RadialGradientBrush x:Key="Brush.BgDeepWash" Center="0.5,0.32" GradientOrigin="0.5,0.32" RadiusX="0.55" RadiusY="0.42">
+  <RadialGradientBrush x:Key="Brush.BgDeepWash" Center="0.5,0.28" GradientOrigin="0.5,0.28" RadiusX="0.55" RadiusY="0.42">
     <GradientStop Color="{StaticResource Color.BgDeep}" Offset="0" />
     <GradientStop Color="Transparent" Offset="1" />
   </RadialGradientBrush>
 
   <!-- Motion -->
-  <Duration x:Key="Motion.Fast">0:0:0.120</Duration>
-  <sys:Double x:Key="Motion.Fast.Ms">120</sys:Double>
+  <Duration x:Key="Motion.Fast">0:0:0.150</Duration>
+  <sys:Double x:Key="Motion.Fast.Ms">150</sys:Double>
   <Duration x:Key="Motion.Base">0:0:0.200</Duration>
   <sys:Double x:Key="Motion.Base.Ms">200</sys:Double>
-  <Duration x:Key="Motion.Slow">0:0:0.320</Duration>
-  <sys:Double x:Key="Motion.Slow.Ms">320</sys:Double>
+  <Duration x:Key="Motion.Slow">0:0:0.300</Duration>
+  <sys:Double x:Key="Motion.Slow.Ms">300</sys:Double>
   <Duration x:Key="Motion.StatusPulse">0:0:1.600</Duration>
   <sys:Double x:Key="Motion.StatusPulse.Min">0.55</sys:Double>
   <sys:Double x:Key="Motion.StatusPulse.Max">1.0</sys:Double>
 
   <!-- Layout -->
-  <sys:Double x:Key="Layout.Window.MinWidth">560</sys:Double>
-  <sys:Double x:Key="Layout.Window.MinHeight">640</sys:Double>
-  <sys:Double x:Key="Layout.Window.DefaultWidth">640</sys:Double>
-  <sys:Double x:Key="Layout.Window.DefaultHeight">760</sys:Double>
-  <sys:Double x:Key="Layout.Settings.Width">460</sys:Double>
-  <sys:Double x:Key="Layout.Settings.Height">360</sys:Double>
+  <sys:Double x:Key="Layout.Window.MinWidth">880</sys:Double>
+  <sys:Double x:Key="Layout.Window.MinHeight">600</sys:Double>
+  <sys:Double x:Key="Layout.Window.DefaultWidth">1040</sys:Double>
+  <sys:Double x:Key="Layout.Window.DefaultHeight">720</sys:Double>
+  <sys:Double x:Key="Layout.Settings.Width">560</sys:Double>
+  <sys:Double x:Key="Layout.Settings.Height">520</sys:Double>
+  <sys:Double x:Key="Layout.Rail.Width">220</sys:Double>
+  <sys:Double x:Key="Layout.Content.MaxWidth">760</sys:Double>
+  <Duration x:Key="Motion.Breathing">0:0:3.000</Duration>
+  <sys:Double x:Key="Motion.Breathing.Amplitude">0.05</sys:Double>
+  <Duration x:Key="Motion.RowHighlight">0:0:1.600</Duration>
 
 </ResourceDictionary>

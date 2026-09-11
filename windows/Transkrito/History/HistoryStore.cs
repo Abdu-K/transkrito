@@ -18,8 +18,18 @@ public sealed class CorrectionRecord
     [JsonIgnore] public string Display => Count > 1 ? $"{Matched} → {Write}  ×{Count}" : $"{Matched} → {Write}";
 }
 
-public sealed class Transcription
+public sealed class Transcription : System.ComponentModel.INotifyPropertyChanged
 {
+    public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+    private bool _isNew;
+    /// <summary>True briefly after the row lands so the list can hold a tint until noticed. Not persisted.</summary>
+    [JsonIgnore] public bool IsNew { get => _isNew; set { _isNew = value; PropertyChanged?.Invoke(this, new(nameof(IsNew))); } }
+    [JsonIgnore] public int WordCount => Text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length;
+    [JsonIgnore] public string DayKey => Date.LocalDateTime.Date.ToString("yyyy-MM-dd");
+    [JsonIgnore] public string DayLabel => Date.LocalDateTime.Date == DateTime.Today ? "Today"
+        : Date.LocalDateTime.Date == DateTime.Today.AddDays(-1) ? "Yesterday"
+        : Date.LocalDateTime.Date.Year == DateTime.Today.Year ? Date.LocalDateTime.ToString("d MMMM") : Date.LocalDateTime.ToString("d MMMM yyyy");
+
     [JsonPropertyName("id")] public string Id { get; set; } = Guid.NewGuid().ToString();
     [JsonPropertyName("date")] public DateTimeOffset Date { get; set; } = DateTimeOffset.Now;
     [JsonPropertyName("raw")] public string Raw { get; set; } = "";
@@ -32,9 +42,7 @@ public sealed class Transcription
     [JsonIgnore] public bool HasCorrections => Corrections.Count > 0;
     [JsonIgnore] public int CorrectionCount => Corrections.Sum(c => c.Count);
     [JsonIgnore] public string CorrectionLabel => CorrectionCount == 1 ? "1 correction" : $"{CorrectionCount} corrections";
-    [JsonIgnore] public string TimeLabel => Date.LocalDateTime.Date == DateTime.Today
-        ? Date.LocalDateTime.ToString("HH:mm")
-        : Date.LocalDateTime.ToString("d MMM HH:mm");
+    [JsonIgnore] public string TimeLabel => Date.LocalDateTime.ToString("HH:mm");
 }
 
 public sealed class HistoryFile
@@ -65,8 +73,20 @@ public sealed class HistoryStore
         }
     }
 
+    /// <summary>Today's count, today's words, and the run of consecutive days (ending today) with at least one dictation.</summary>
+    public (int Today, int WordsToday, int Streak) Stats()
+    {
+        var today = DateTime.Today;
+        var todays = Items.Where(t => t.Date.LocalDateTime.Date == today).ToList();
+        var days = new HashSet<DateTime>(Items.Select(t => t.Date.LocalDateTime.Date));
+        var streak = 0;
+        for (var d = today; days.Contains(d); d = d.AddDays(-1)) streak++;
+        return (todays.Count, todays.Sum(t => t.WordCount), streak);
+    }
+
     public void Add(Transcription t)
     {
+        t.IsNew = true;
         Items.Insert(0, t);
         while (Items.Count > Cap) Items.RemoveAt(Items.Count - 1);
         Save();

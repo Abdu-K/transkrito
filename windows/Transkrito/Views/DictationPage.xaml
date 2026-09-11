@@ -1,0 +1,110 @@
+<UserControl x:Class="Transkrito.Views.DictationPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="clr-namespace:Transkrito.Design"
+             xmlns:v="clr-namespace:Transkrito.Views">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Hero: the instrument. Pillars, then the hotkey + mic as one line, then one quiet stats line. -->
+        <StackPanel Grid.Row="0" Margin="{StaticResource Pad.Page}" HorizontalAlignment="Center">
+            <v:PillarsControl Height="{StaticResource Comp.PillarsAreaHeight}" HorizontalAlignment="Center" Level="{Binding Level}" />
+            <Grid Margin="{StaticResource Pad.Below.S3}" HorizontalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" x:Name="MicButton" Style="{StaticResource Button.Mic}" ToolTip="{Binding HotkeyHint}"
+                        PreviewMouseLeftButtonDown="OnMicDown" PreviewMouseLeftButtonUp="OnMicUp" MouseLeave="OnMicLeave"
+                        IsEnabled="{Binding IsTranscribing, Converter={StaticResource InverseBool}}" VerticalAlignment="Center" />
+                <StackPanel Grid.Column="1" Margin="{StaticResource Pad.Gap.S4}" VerticalAlignment="Center">
+                    <TextBlock Style="{StaticResource Text.Status}" Foreground="{StaticResource Brush.InkPrimary}">
+                        <TextBlock.Text>
+                            <MultiBinding StringFormat="{}{0} {1} anywhere">
+                                <Binding Path="HoldToTalkVerb" />
+                                <Binding Path="HotkeyLabel" />
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
+                    <TextBlock x:Name="StatsLine" Style="{StaticResource Text.Caption}" Margin="{StaticResource Pad.Below.S1}" />
+                </StackPanel>
+            </Grid>
+        </StackPanel>
+
+        <!-- History -->
+        <Grid Grid.Row="1" Margin="{StaticResource Pad.PageX}" MaxWidth="{StaticResource Layout.Content.MaxWidth}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <TextBox x:Name="SearchBox" Grid.Row="0" Style="{StaticResource Field}" d:FieldHelper.Placeholder="Search dictations"
+                     d:FieldHelper.Icon="{StaticResource Icon.Search}" TextChanged="OnSearchChanged" />
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="{StaticResource Pad.Below.S3}" PanningMode="VerticalOnly">
+                <Grid>
+                    <StackPanel x:Name="Empty" Margin="{StaticResource Pad.S7}" HorizontalAlignment="Center">
+                        <TextBlock Style="{StaticResource Text.Body}" Foreground="{StaticResource Brush.InkSecondary}" TextAlignment="Center"
+                                   Text="{Binding EmptyTitle, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                        <TextBlock Style="{StaticResource Text.Caption}" Foreground="{StaticResource Brush.InkTertiary}" TextAlignment="Center" Margin="{StaticResource Pad.Below.S1}"
+                                   Text="{Binding EmptyHint, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                    </StackPanel>
+                    <ItemsControl x:Name="Groups">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type v:DayGroup}">
+                                <StackPanel Margin="{StaticResource Pad.Below.S4}">
+                                    <TextBlock Style="{StaticResource Text.DayHeader}" Text="{Binding Label}" Margin="{StaticResource Pad.Below.S2}" />
+                                    <ItemsControl ItemsSource="{Binding Items}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border x:Name="Row" Background="Transparent" CornerRadius="{StaticResource Radius.Md}" Padding="{StaticResource Pad.Row}"
+                                                        Margin="{StaticResource Pad.RowGap}">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="{StaticResource Comp.TimeColumn.Length}" />
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Style="{StaticResource Text.Caption}" Foreground="{StaticResource Brush.InkTertiary}" Text="{Binding TimeLabel}" Margin="{StaticResource Pad.TimeOffset}" />
+                                                        <StackPanel Grid.Column="1">
+                                                            <TextBlock Style="{StaticResource Text.Transcript}" Text="{Binding Text}" />
+                                                            <ToggleButton x:Name="Chip" Style="{StaticResource Chip}" Content="{Binding CorrectionLabel}" HorizontalAlignment="Left" Margin="{StaticResource Pad.Below.S2}"
+                                                                          Visibility="{Binding HasCorrections, Converter={StaticResource BoolToVis}}" />
+                                                            <ItemsControl ItemsSource="{Binding Corrections}" Margin="{StaticResource Pad.Below.S1}"
+                                                                          Visibility="{Binding IsChecked, ElementName=Chip, Converter={StaticResource BoolToVis}}">
+                                                                <ItemsControl.ItemTemplate>
+                                                                    <DataTemplate>
+                                                                        <TextBlock Style="{StaticResource Text.Caption}" Text="{Binding Display}" Foreground="{StaticResource Brush.AccentIce}" />
+                                                                    </DataTemplate>
+                                                                </ItemsControl.ItemTemplate>
+                                                            </ItemsControl>
+                                                        </StackPanel>
+                                                        <StackPanel Grid.Column="2" x:Name="Actions" Orientation="Horizontal" VerticalAlignment="Top" Margin="{StaticResource Pad.Gap.S2}" Opacity="0">
+                                                            <Button Style="{StaticResource Button.Icon}" Tag="{StaticResource Icon.Copy}" ToolTip="Copy" Click="OnCopy" CommandParameter="{Binding}" />
+                                                            <Button Style="{StaticResource Button.Icon.Danger}" Tag="{StaticResource Icon.Trash}" ToolTip="Delete" Click="OnDelete" CommandParameter="{Binding}" />
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Border>
+                                                <DataTemplate.Triggers>
+                                                    <Trigger SourceName="Row" Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="Actions" Property="Opacity" Value="1" />
+                                                        <Setter TargetName="Row" Property="Background" Value="{StaticResource Brush.SurfaceGlass1}" />
+                                                    </Trigger>
+                                                    <!-- A row that just landed stays lit until noticed (direction contract: moves in place, holds tint). -->
+                                                    <DataTrigger Binding="{Binding IsNew}" Value="True">
+                                                        <Setter TargetName="Row" Property="Background" Value="{StaticResource Brush.AccentPale}" />
+                                                    </DataTrigger>
+                                                </DataTemplate.Triggers>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</UserControl>
