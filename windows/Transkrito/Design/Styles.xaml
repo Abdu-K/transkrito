@@ -525,6 +525,7 @@
     <Style TargetType="ScrollBar">
         <Setter Property="Width" Value="{StaticResource Comp.ScrollbarWidth}" />
         <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Opacity" Value="0" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ScrollBar">
@@ -541,6 +542,19 @@
                 <Setter Property="Height" Value="0" />
                 <Setter Property="Visibility" Value="Collapsed" />
             </Trigger>
+            <!-- Fluent-style: the thumb shows while the scrolling content is hovered. -->
+            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=ScrollViewer}}" Value="True">
+                <DataTrigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard><DoubleAnimation Storyboard.TargetProperty="Opacity" To="1" Duration="{StaticResource Motion.Fast}" /></Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.EnterActions>
+                <DataTrigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard><DoubleAnimation Storyboard.TargetProperty="Opacity" To="0" Duration="{StaticResource Motion.Slow}" /></Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.ExitActions>
+            </DataTrigger>
         </Style.Triggers>
     </Style>
     <Style TargetType="ToolTip">

@@ -21,7 +21,6 @@ colors:
   line-glass1: "#F0F8FF1A"
   line-glass2: "#F0F8FF33"
   line-glass-strong: "#F0F8FF66"
-  pillar-idle: "#F0F8FF2E"
   pillar-glass-fill-top: "#7DD3FCF2"
   pillar-glass-fill-bottom: "#1C4ED8F2"
   pillar-glass-highlight: "#FFFFFFB2"
@@ -206,7 +205,7 @@ Recorded from the shipped Windows WPF build (verified) and its SwiftUI mirror (u
 
 **Creative North Star: "The Listening Instrument"**
 
-One window, one committed dark look. The ground is deep navy paper (`bg-top` → `bg-bottom`, top to bottom); the only material on it is glass: 1px edges at 10 / 20 / 40% ice-white and fills at 6 / 10 / 16%. Nothing casts a shadow except menus. The 21 glass capsule pillars are the single living element: they breathe at rest, light up cobalt-to-ice when you speak, and glow in proportion to your voice. Everything else — rail, history, dictionary, settings — is quiet text on paper with hairlines, so the eye returns to the instrument.
+One window, one committed dark look. The ground is deep navy paper (`bg-top` → `bg-bottom`, top to bottom); the only material on it is glass: 1px edges at 10 / 20 / 40% ice-white and fills at 6 / 10 / 16%. Nothing casts a shadow except menus. The 21 glass capsule pillars are the single living element: cobalt-to-ice glass at 42% while they breathe at rest, full-strength glass the moment the key is held, and a glow that follows your voice. Everything else — rail, history, dictionary, settings — is quiet text on paper with hairlines, so the eye returns to the instrument.
 
 Refused: the card-grid dashboard, the stats hero, tonal panels, OS light mode. The OS theme is ignored on both platforms; there is no light variant.
 
@@ -216,7 +215,7 @@ Refused: the card-grid dashboard, the stats hero, tonal panels, OS light mode. T
 - One accent family (Sky `accent-base`, Cobalt `accent-strong`, Ice `accent-ice`); ice is reserved for "alive" states (listening, active nav icon, chip text, links).
 - One type family per OS, six roles, 12–28px. No display face.
 - Icons are drawn geometry (Windows) or SF Symbols (macOS). Never glyph characters.
-- Motion is physical: exponential lerps with token time constants, a 3 s breath, a 1.6 s hold on what just changed.
+- Motion is physical: exponential lerps with token time constants, a 3 s breath, a 1.6 s hold on what just changed, a 150 ms fade when a page arrives.
 
 ## Colors
 
@@ -224,8 +223,8 @@ Navy ground, ice ink, one blue accent with an ice highlight. Every color is a na
 
 ### Primary
 - **Sky** (`accent-base`, #3B82F6): primary action fill (Add / Save), focused field border, checkbox on, combo open border, transcribing status dot, mic fill while listening, text selection.
-- **Cobalt** (`accent-strong`, #1C4ED8): pressed primary / pressed mic, bottom of the speaking-pillar gradient.
-- **Ice** (`accent-ice`, #7DD3FC): the "alive" color — listening dot and status text, active nav icon, wordmark mark, chip text, correction lines, text-button hover, caret, download progress, glow color, top of the speaking-pillar gradient.
+- **Cobalt** (`accent-strong`, #1C4ED8): pressed primary / pressed mic, bottom of the pillar gradient.
+- **Ice** (`accent-ice`, #7DD3FC): the "alive" color — listening dot and status text, active nav icon, wordmark mark, chip text, correction lines, text-button hover, caret, download progress, glow color, top of the pillar gradient.
 - **Sky wash** (`accent-pale`, #3B82F6 @ 18%): active nav fill, chip fill, selected combo row, a history row that just landed.
 
 ### Neutral
@@ -239,10 +238,11 @@ Navy ground, ice ink, one blue accent with an ice highlight. Every color is a na
 - **Glass lines** (`line-glass1/2/strong`, #F0F8FF @ 10 / 20 / 40%): hairlines, field and segmented edges, rail edge / hovered field, key cap edge, mic ring at rest, popover and tooltip edge, scrollbar thumb / hovered mic ring, keyboard-focused nav item ring.
 
 ### Pillar
-- `pillar-idle` (#F0F8FF @ 18%): every pillar at rest.
-- `pillar-glass-fill-top` → `pillar-glass-fill-bottom` (#7DD3FC → #1C4ED8, both @ 95%): vertical gradient, speaking only.
-- `pillar-glass-highlight` (#FFFFFF @ 70%, 1.5px): inner stroke at 32% of pillar width from the left, from the cap down to 40% of height.
+There is no separate idle color. Every pillar is always the same glass; only its strength changes.
+- `pillar-glass-fill-top` → `pillar-glass-fill-bottom` (#7DD3FC → #1C4ED8, both @ 95%): vertical gradient on every pillar.
+- `pillar-glass-highlight` (#FFFFFF @ 70%, 1.5px): inner stroke at `highlightInset` 32% of pillar width from the left, from the cap down to 40% of height.
 - `pillar-glass-edge` (#7DD3FC @ 45%, 0.75px): outer refraction stroke.
+- Strength: the whole glass layer (fill + edge + highlight) is drawn at `restAlpha` 0.42 at rest and at 1.0 while listening.
 
 ### State
 - **Danger** (`state-danger`, #F87171): delete hover, error status dot and text, dictionary load error, hotkey error.
@@ -267,7 +267,7 @@ Navy ground, ice ink, one blue accent with an ice highlight. Every color is a na
 - **Transcript** (400, 15px / 22px): history row text, wrapping, max width 760.
 - **Body** (400, 13px / 18px): nav labels, dictionary rows, settings labels (`ink-secondary`), buttons, segments, fields.
 - **Caption** (400, 12px / 16px, `ink-secondary`): hints, timestamps (`ink-tertiary`), chips, status word, tooltip, model status, correction detail lines (`accent-ice`).
-- **Day header** (500, 13px, `ink-tertiary`, small caps requested): "Today", "Yesterday", "10 September".
+- **Day header** (500, 12px caption, `ink-tertiary`, uppercase): "TODAY", "YESTERDAY", "10 SEPTEMBER". Uppercased in code on Windows (`ToUpperInvariant`); `.uppercased()` with `dayHeaderTracking` 0.6 on macOS.
 - **Mono** (500, 12px / 16px, +0.4): key caps ("Ctrl", "Alt", "D"), data path (`ink-tertiary`, ellipsis-trimmed).
 
 ### Named Rules
@@ -281,9 +281,10 @@ Fixed shell, one window, no responsive breakpoints; the window resizes, the rail
 - **Window:** default 1040 × 720, min 880 × 600. Background `bg-top` → `bg-bottom` linear, top to bottom. Text rendering: WPF Ideal + ClearType, layout rounding on.
 - **Rail:** 220px, `bg-rail` fill, 1px `line-glass1` right edge, inset 16 (`s4`). Top: wordmark (waveform mark in `accent-ice` + "Transkrito" body/medium) with 12×8 padding. Then, 24 (`s5`) below, three nav items 36px high with 4 (`s1`) between. Bottom: status dot (8px) + status caption, then the hotkey as key caps, then the mode hint in `ink-tertiary`.
 - **Content column:** page inset 32 (`s6`) on all sides; content max width 760, left-aligned on Dictionary / Settings, centered hero on Dictation.
-- **Dictation page:** pillars area 180px tall, centered; 12 (`s3`) below it a two-column line: 48px mic, 16 (`s4`) gap, then status-style hotkey sentence over a caption stats line ("Today · 3 dictations · 41 words · 4-day streak" or "Nothing dictated today"). Below: search field, 12 gap, scrolling history. History groups by day (header, 8 below), rows 12×16 padding, 2px row gap, time column 56px with a 3px baseline nudge, actions column appears on hover. Chip "N corrections" under the text; clicking expands caption lines in `accent-ice` listing each change.
+- **Dictation page:** hero inset `Pad.Hero` 32,80,32,32 (page inset + `heroTop` 48 above the instrument); pillars area 240px tall, centered; 12 (`s3`) below it a two-column line: the status-style hotkey sentence over a caption stats line, then 16 (`s4`) gap, then the 48px mic on the right. Stats line: "Today · 3 dictations · 41 words · 4-day streak"; when today is empty it falls back to all-time figures ("12 dictations · 380 words · last yesterday"), and to "Nothing dictated yet" when history is empty. Below: search field, 12 gap, scrolling history. History groups by day (uppercase header, 8 below), rows 12×16 padding, 2px row gap, time column 56px with a 3px baseline nudge, actions column appears on hover. Chip "N corrections" under the text; clicking expands caption lines in `accent-ice` listing each change.
 - **Dictionary page:** title, one-line description, 24 gap, editor (segmented "Word or phrase / Correction", then hear-field → write-field → Add/Save), 24 gap, search + segmented filter (All / Words / Corrections), 12 gap, rows. Rows: hear `→` write in body, actions on hover.
 - **Settings page:** title, 24 gap, two-column form; label column min 140px, labels `ink-secondary` top-aligned with a 32px step between sections (`Pad.LabelNext` 12,32,12,8). Fields stretch the remaining width. Every control has a caption hint directly beneath it.
+- **Page switch:** the outgoing page collapses; the incoming page fades from 0 to 1 over `motion.fast` 150 ms with an exponential ease-out (WPF `ExponentialEase`, `MainWindow.Show()`). It is the only authored navigation moment.
 - **Windows-only chrome:** native title bar kept, painted via DWM — immersive dark mode on, caption color `bg-top`, caption text `ink-secondary`. Closing hides to the tray; Quit lives in the tray menu.
 - **macOS-only chrome:** `.hiddenTitleBar`; the rail wordmark carries 24 (`s5`) top padding to clear the traffic lights; a `MenuBarExtra` mirrors the tray.
 
@@ -298,11 +299,11 @@ Flat by material, depth by translucency. Surfaces stack as glass fills over the 
 ### Shadow Vocabulary
 - **Menu** (`0 4px 12px bg-bottom @ 45%`): combo popover and tray menu only. The single drop shadow in the app.
 - **Soft** (`0 1px 2px bg-bottom @ 30%`): tokened for the mic at rest; not applied in either build (see drift line).
-- **Glow** (`0 0 24px accent-ice @ 45%`): not a shadow but a halo. Mic while listening (blurred ice disc, −8 margin, opacity 0.45). Pillars while speaking: three stacked rounded halos at spread 8 / 16 / 24 with alpha 0.45 × speaking-blend × min(1, level × 1.5) ÷ (ring × 3). Alpha scales with voice level.
+- **Glow** (`0 0 24px accent-ice @ 45%`): not a shadow but a halo. Mic while listening (blurred ice disc, −8 margin, opacity 0.45). Pillars while listening: three stacked rounded halos at spread 8 / 16 / 24 with alpha 0.45 × lit-blend × (`glowFloor` 0.35 + 0.65 × min(1, level × 1.5)) ÷ (ring × 3). A held but silent key keeps a 35% floor glow; voice raises it to full.
 
 ### Named Rules
 **The Only-Menus-Drop Rule.** Nothing anchored in the window casts a shadow. Only things that float (popover, tray menu) do.
-**The Glow-Is-Level Rule.** The ice glow is never static decoration; its opacity is a function of the live audio level and fades out with the speaking blend (200 ms constant).
+**The Glow-Is-Level Rule.** The ice glow is never static decoration; it exists only while the key is held (lit blend, 200 ms constant), sits at the `glowFloor` while you are silent, and rises with the live audio level.
 
 ## Shapes
 
@@ -382,14 +383,17 @@ Character: quiet glass that brightens one step on hover, two on press, and turns
 - Transparent, 12px radius, 12×16 padding, 2px gap. Hover: `surface-glass1` and the action buttons fade in. New: `accent-pale` tint held for 1.6 s (`rowHighlight.holdMs`) after the transcription lands, then cleared; macOS animates the tint change with `easeStandard`. Time column caption `ink-tertiary`; text transcript `ink-primary`.
 
 ### Pillars (signature)
-- 21 capsules, 8 wide, 7 gap, centered in a 180px-tall area (WPF measures width = 21×8 + 20×7 = 308). Heights 12–140, vertically centered around the mid-line.
+- 21 capsules, 8 wide, 7 gap, centered in a 240px-tall area (WPF measures width = 21×8 + 20×7 = 308). Heights 12–140, vertically centered around the mid-line.
+- **Inputs:** `Level` (smoothed 0..1) and `IsListening` (the recording state — true while the hotkey or mic is held). The glass answers the key; the height and glow answer the voice.
 - **Envelope:** `env_i = max(0.15, cos²(π·d/(N−1)))`, d = distance from center; symmetric, tallest in the middle.
 - **Level:** RMS → dB → `clamp((20·log10(rms) + 50) / 50, 0, 1)`, smoothed by an asymmetric EMA with attack 60 ms and release 220 ms (`a = 1 − exp(−dt/τ)`).
 - **Breathing:** `breath = sin(2π·t / 3000 ms) × 0.05`; the frame loop never sleeps while visible.
-- **Drive:** `drive = 0.3·(1 + breath) + 0.7·level` (idleLevel 0.3 so the envelope shape reads in silence).
+- **Drive:** `drive = 0.45·(1 + breath) + 0.55·level` (`idleLevel` 0.45 so the envelope shape reads in silence).
 - **Jitter:** per-pillar random walk toward a target in ±0.06, mirrored, scaled by `min(1, level×4)` so silence is still.
 - **Height:** `target_i = 12 + 128 · drive · env_i · (1 + jitter_i)`; displayed height lerps toward target with `k = 1 − exp(−dt / 120 ms)` (WPF) — the macOS equivalent of `spring(response 0.3, damping 0.85)`.
-- **Speaking blend:** target 1 when level ≥ 0.06 else 0, lerped with the 200 ms base constant. At blend 0 every pillar is a `pillar-idle` capsule. As blend rises the glass layer is drawn over it at that opacity: gradient fill, 0.75px `pillar-glass-edge`, 1.5px white highlight from the cap to 40% height at 32% of the width, and the ice glow halos.
+- **Lit blend:** target 1 while `IsListening` else 0, lerped with the 200 ms base constant. It is bound to the recording state, never to the audio level (`speakingThreshold` 0.06 remains a token but no longer gates the glass).
+- **Glass strength:** `strength = restAlpha 0.42 + 0.58 × lit`. Every pillar, always, is drawn at that opacity as one glass layer: gradient fill, 0.75px `pillar-glass-edge`, 1.5px white highlight from the cap to 40% height at `highlightInset` 32% of the width. At rest the instrument is visibly cobalt-ice glass at 42%; holding the key brings it to full.
+- **Glow:** drawn under the glass while lit — see Elevation & Depth; floor 0.35 of the glow while held and silent, full with voice.
 - Not hit-testable; nothing is clickable inside the instrument.
 
 ### Empty states
@@ -412,10 +416,11 @@ Character: quiet glass that brightens one step on hover, two on press, and turns
 - **Do** put a caption hint under every setting control, and pair every colored status with its word.
 - **Do** keep icons as authored 24-grid stroke geometry (Windows) or `.medium` SF Symbols (macOS) at 16 / 20 / 14 / 12.
 - **Do** derive any new motion from the token constants: 150 / 200 / 300 ms, ease 0.2 0 0 1, lerp `1 − exp(−dt/τ)`, 1.6 s hold for things the user should notice.
-- **Do** keep the pillars the only element that moves on its own.
+- **Do** keep the pillars the only element that moves on its own; the page fade (150 ms ease-out) is the only other authored motion on navigation.
 
 ### Don't:
-- **Don't** add cards, panels, tonal containers or a stats tile row; the Dictation hero is pillars, one line, one caption.
+- **Don't** add cards, panels, tonal containers or a stats tile row; the Dictation hero is pillars, one line, one caption, mic to the right.
+- **Don't** gate the pillar glass on audio level; it lights with the recording state so a held key is visibly "on" before the first syllable.
 - **Don't** add a light theme or read the OS appearance; the palette is one dark look on both platforms.
 - **Don't** use `accent-ice` on static chrome; it means alive or changed.
 - **Don't** apply shadows to anything anchored in the window; only the popover and tray menu carry the menu shadow.
