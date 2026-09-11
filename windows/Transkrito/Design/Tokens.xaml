@@ -113,6 +113,52 @@
   <Thickness x:Key="Border.Focus">1.5</Thickness>
   <Thickness x:Key="Border.Warning">1</Thickness>
 
+  <!-- Border widths as doubles -->
+  <sys:Double x:Key="Border.Hairline.Width">1</sys:Double>
+  <sys:Double x:Key="Border.Field.Width">1</sys:Double>
+  <sys:Double x:Key="Border.Focus.Width">1.5</sys:Double>
+  <sys:Double x:Key="Border.Warning.Width">1</sys:Double>
+
+  <!-- Shadow -->
+  <sys:Double x:Key="Shadow.Menu.Blur">8</sys:Double>
+  <sys:Double x:Key="Shadow.Menu.Depth">2</sys:Double>
+  <sys:Double x:Key="Shadow.Menu.Alpha">0.08</sys:Double>
+  <sys:Double x:Key="Shadow.Glow.Blur">14</sys:Double>
+  <sys:Double x:Key="Shadow.Glow.Depth">0</sys:Double>
+  <sys:Double x:Key="Shadow.Glow.Alpha">0.22</sys:Double>
+
+  <!-- Component -->
+  <sys:Double x:Key="Comp.FieldPaddingH">10</sys:Double>
+  <sys:Double x:Key="Comp.FieldPaddingV">6</sys:Double>
+  <sys:Double x:Key="Comp.PillHeight">36</sys:Double>
+  <sys:Double x:Key="Comp.CheckSize">16</sys:Double>
+  <sys:Double x:Key="Comp.ChipPaddingH">8</sys:Double>
+  <sys:Double x:Key="Comp.ChipPaddingV">2</sys:Double>
+  <sys:Double x:Key="Comp.ScrollbarWidth">6</sys:Double>
+  <sys:Double x:Key="Comp.PillarsAreaHeight">160</sys:Double>
+  <sys:Double x:Key="Comp.IconSize">14</sys:Double>
+  <sys:Double x:Key="Comp.PillMinWidth">120</sys:Double>
+  <sys:Double x:Key="Comp.TabGap">24</sys:Double>
+  <sys:Double x:Key="Comp.TrayMenuMinWidth">180</sys:Double>
+  <Thickness x:Key="Pad.Field">10,6</Thickness>
+  <Thickness x:Key="Pad.Chip">8,2</Thickness>
+  <Thickness x:Key="Pad.PillH">24,0</Thickness>
+  <Thickness x:Key="Pad.Tabs">0,24,0,12</Thickness>
+  <Thickness x:Key="Pad.TabGap">24,0,0,0</Thickness>
+  <Thickness x:Key="Pad.RowV">0,12</Thickness>
+  <Thickness x:Key="Pad.Row">16,12</Thickness>
+  <Thickness x:Key="Pad.Gap.S1">4,0,0,0</Thickness>
+  <Thickness x:Key="Pad.Gap.S2">8,0,0,0</Thickness>
+  <Thickness x:Key="Pad.Gap.S3">12,0,0,0</Thickness>
+  <Thickness x:Key="Pad.Below.S1">0,4,0,0</Thickness>
+  <Thickness x:Key="Pad.Below.S2">0,8,0,0</Thickness>
+  <Thickness x:Key="Pad.Below.S3">0,12,0,0</Thickness>
+  <Thickness x:Key="Pad.Below.S5">0,24,0,0</Thickness>
+  <RadialGradientBrush x:Key="Brush.BgDeepWash" Center="0.5,0.32" GradientOrigin="0.5,0.32" RadiusX="0.55" RadiusY="0.42">
+    <GradientStop Color="{StaticResource Color.BgDeep}" Offset="0" />
+    <GradientStop Color="Transparent" Offset="1" />
+  </RadialGradientBrush>
+
   <!-- Motion -->
   <Duration x:Key="Motion.Fast">0:0:0.120</Duration>
   <sys:Double x:Key="Motion.Fast.Ms">120</sys:Double>

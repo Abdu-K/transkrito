@@ -61,6 +61,7 @@ public static class Tokens
         public const double EnvelopeFloor = 0.15;
         public const double Jitter = 0.06;
         public const double SpeakingThreshold = 0.06;
+        public const double IdleLevel = 0.12;
         public const double HighlightWidth = 1;
         public const double HighlightCoverage = 0.4;
         public const double EdgeWidth = 0.5;
@@ -87,6 +88,21 @@ public static class Tokens
         /// <summary>Radial wash: center (0.5, 0.32), radius 0.55 of width, alpha from tokens.</summary>
         public const double DeepCenterX = 0.5, DeepCenterY = 0.32, DeepRadius = 0.55;
         public const double DeepAlpha = 0.18;
+    }
+    public static class Comp
+    {
+        public const double FieldPaddingH = 10;
+        public const double FieldPaddingV = 6;
+        public const double PillHeight = 36;
+        public const double CheckSize = 16;
+        public const double ChipPaddingH = 8;
+        public const double ChipPaddingV = 2;
+        public const double ScrollbarWidth = 6;
+        public const double PillarsAreaHeight = 160;
+        public const double IconSize = 14;
+        public const double PillMinWidth = 120;
+        public const double TabGap = 24;
+        public const double TrayMenuMinWidth = 180;
     }
     public const int BiasMaxTerms = 40;
 }

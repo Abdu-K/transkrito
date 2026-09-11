@@ -82,6 +82,43 @@ x.append('  <!-- Border -->')
 for k, v in T["border"].items():
     x.append(f'  <Thickness x:Key="Border.{pascal(k)}">{v["width"]}</Thickness>')
 x.append('')
+x.append('  <!-- Border widths as doubles -->')
+for k, v in T["border"].items():
+    x.append(f'  <sys:Double x:Key="Border.{pascal(k)}.Width">{v["width"]}</sys:Double>')
+x.append('')
+x.append('  <!-- Shadow -->')
+for k in ("menu", "glow"):
+    s_ = T["shadow"][k]
+    x.append(f'  <sys:Double x:Key="Shadow.{pascal(k)}.Blur">{s_["blur"]}</sys:Double>')
+    x.append(f'  <sys:Double x:Key="Shadow.{pascal(k)}.Depth">{s_["y"]}</sys:Double>')
+    x.append(f'  <sys:Double x:Key="Shadow.{pascal(k)}.Alpha">{s_["alpha"]}</sys:Double>')
+x.append('')
+x.append('  <!-- Component -->')
+comp = T["component"]
+for k, v in comp.items():
+    if isinstance(v, (int, float)):
+        x.append(f'  <sys:Double x:Key="Comp.{pascal(k)}">{v}</sys:Double>')
+x.append(f'  <Thickness x:Key="Pad.Field">{comp["fieldPaddingH"]},{comp["fieldPaddingV"]}</Thickness>')
+x.append(f'  <Thickness x:Key="Pad.Chip">{comp["chipPaddingH"]},{comp["chipPaddingV"]}</Thickness>')
+x.append(f'  <Thickness x:Key="Pad.PillH">{T["space"]["s5"]},0</Thickness>')
+sp_ = T["space"]
+x.append(f'  <Thickness x:Key="Pad.Tabs">0,{sp_["s5"]},0,{sp_["s3"]}</Thickness>')
+x.append(f'  <Thickness x:Key="Pad.TabGap">{comp["tabGap"]},0,0,0</Thickness>')
+x.append(f'  <Thickness x:Key="Pad.RowV">0,{sp_["s3"]}</Thickness>')
+x.append(f'  <Thickness x:Key="Pad.Row">{sp_["s4"]},{sp_["s3"]}</Thickness>')
+x.append(f'  <Thickness x:Key="Pad.Gap.S1">{sp_["s1"]},0,0,0</Thickness>')
+x.append(f'  <Thickness x:Key="Pad.Gap.S2">{sp_["s2"]},0,0,0</Thickness>')
+x.append(f'  <Thickness x:Key="Pad.Gap.S3">{sp_["s3"]},0,0,0</Thickness>')
+x.append(f'  <Thickness x:Key="Pad.Below.S1">0,{sp_["s1"]},0,0</Thickness>')
+x.append(f'  <Thickness x:Key="Pad.Below.S2">0,{sp_["s2"]},0,0</Thickness>')
+x.append(f'  <Thickness x:Key="Pad.Below.S3">0,{sp_["s3"]},0,0</Thickness>')
+x.append(f'  <Thickness x:Key="Pad.Below.S5">0,{sp_["s5"]},0,0</Thickness>')
+deep = C["bg"]["deep"]
+x.append('  <RadialGradientBrush x:Key="Brush.BgDeepWash" Center="0.5,0.32" GradientOrigin="0.5,0.32" RadiusX="0.55" RadiusY="0.42">')
+x.append('    <GradientStop Color="{StaticResource Color.BgDeep}" Offset="0" />')
+x.append('    <GradientStop Color="Transparent" Offset="1" />')
+x.append('  </RadialGradientBrush>')
+x.append('')
 x.append('  <!-- Motion -->')
 for k in ("fast", "base", "slow"):
     ms = T["motion"][k]
@@ -123,6 +160,7 @@ for k in ("count", "width", "gap", "minHeight", "maxHeight"):
 cs.append(f'        public const double EnvelopeFloor = 0.15;')
 cs.append(f'        public const double Jitter = {p["jitter"]};')
 cs.append(f'        public const double SpeakingThreshold = {p["speakingThreshold"]};')
+cs.append(f'        public const double IdleLevel = {p["idleLevel"]};')
 gh = C["pillar"]["glassHighlight"]; ge = C["pillar"]["glassEdge"]
 cs.append(f'        public const double HighlightWidth = {gh["width"]};')
 cs.append(f'        public const double HighlightCoverage = {gh["coverage"]};')
@@ -150,6 +188,12 @@ cs.append('    {')
 cs.append('        /// <summary>Radial wash: center (0.5, 0.32), radius 0.55 of width, alpha from tokens.</summary>')
 cs.append('        public const double DeepCenterX = 0.5, DeepCenterY = 0.32, DeepRadius = 0.55;')
 cs.append(f'        public const double DeepAlpha = {C["bg"]["deep"]["alpha"]};')
+cs.append('    }')
+cs.append('    public static class Comp')
+cs.append('    {')
+for k, v in T["component"].items():
+    if isinstance(v, (int, float)):
+        cs.append(f'        public const double {pascal(k)} = {v};')
 cs.append('    }')
 cs.append(f'    public const int BiasMaxTerms = {T["bias"]["maxTerms"]};')
 cs.append('}')
@@ -212,6 +256,7 @@ for k in ("width", "gap", "minHeight", "maxHeight"):
 sw.append('        static let envelopeFloor: Double = 0.15')
 sw.append(f'        static let jitter: Double = {p["jitter"]}')
 sw.append(f'        static let speakingThreshold: Double = {p["speakingThreshold"]}')
+sw.append(f'        static let idleLevel: Double = {p["idleLevel"]}')
 sw.append(f'        static let highlightWidth: CGFloat = {gh["width"]}')
 sw.append(f'        static let highlightCoverage: CGFloat = {gh["coverage"]}')
 sw.append(f'        static let edgeWidth: CGFloat = {ge["width"]}')
@@ -225,6 +270,11 @@ for k, v in T["layout"]["window"].items():
     sw.append(f'        static let window{pascal(k)}: CGFloat = {v}')
 for k, v in T["layout"]["settings"].items():
     sw.append(f'        static let settings{pascal(k)}: CGFloat = {v}')
+sw.append('    }')
+sw.append('    enum Comp {')
+for k, v in T["component"].items():
+    if isinstance(v, (int, float)):
+        sw.append(f'        static let {k}: CGFloat = {v}')
 sw.append('    }')
 sw.append(f'    static let biasMaxTerms = {T["bias"]["maxTerms"]}')
 sw.append('}')

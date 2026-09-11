@@ -57,7 +57,7 @@ On stop: transcribe → `apply` → history insert → clipboard → optional in
 
 ## Pillars
 `count 21`, index `i ∈ [0, 20]`, center 10, `d = |i − 10|`, `env = max(0.15, cos²(π·d/20))`.
-Jitter: per-pillar random walk in [−0.06, 0.06], mirrored (i and 20−i share). `h_i = min + (max−min)·level·env_i·(1+jitter_i)`. Pillar is "speaking" when smoothed level ≥ 0.06 → glass style (fill gradient, inner highlight, edge, glow with alpha ∝ level) fades in over `motion.base`. Below threshold: `pillar.idle` fill, no glow.
+Jitter: per-pillar random walk in [−0.06, 0.06], mirrored (i and 20−i share). `drive = idleLevel + (1−idleLevel)·level` (idleLevel 0.12 keeps a resting wave while silent). `h_i = min + (max−min)·drive·env_i·(1+jitter_i)`. Pillar is "speaking" when smoothed level ≥ 0.06 → glass style (fill gradient, inner highlight, edge, glow with alpha ∝ level) fades in over `motion.base`. Below threshold: `pillar.idle` fill, no glow.
 
 ## Main window layout (top → bottom)
 status text (`type.status`) · pillars · Start/Stop pill (`accent.base`, `ink.inverse`, radius pill) with hotkey hint (`type.mono`, `ink.tertiary`) · text toggle "History | Dictionary" (`type.body`; active = `accent.base` + 1pt underline) · flat search field · rows with hairline separators.

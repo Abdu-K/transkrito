@@ -103,6 +103,7 @@ enum Tokens {
         static let envelopeFloor: Double = 0.15
         static let jitter: Double = 0.06
         static let speakingThreshold: Double = 0.06
+        static let idleLevel: Double = 0.12
         static let highlightWidth: CGFloat = 1
         static let highlightCoverage: CGFloat = 0.4
         static let edgeWidth: CGFloat = 0.5
@@ -118,6 +119,20 @@ enum Tokens {
         static let windowDefaultHeight: CGFloat = 760
         static let settingsWidth: CGFloat = 460
         static let settingsHeight: CGFloat = 360
+    }
+    enum Comp {
+        static let fieldPaddingH: CGFloat = 10
+        static let fieldPaddingV: CGFloat = 6
+        static let pillHeight: CGFloat = 36
+        static let checkSize: CGFloat = 16
+        static let chipPaddingH: CGFloat = 8
+        static let chipPaddingV: CGFloat = 2
+        static let scrollbarWidth: CGFloat = 6
+        static let pillarsAreaHeight: CGFloat = 160
+        static let iconSize: CGFloat = 14
+        static let pillMinWidth: CGFloat = 120
+        static let tabGap: CGFloat = 24
+        static let trayMenuMinWidth: CGFloat = 180
     }
     static let biasMaxTerms = 40
 }
