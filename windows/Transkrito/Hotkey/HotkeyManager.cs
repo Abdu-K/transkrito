@@ -31,7 +31,10 @@ public sealed class HotkeyManager : IDisposable
         foreach (var m in hk.Modifiers)
             mods |= m switch { "control" => MOD_CONTROL, "alt" => MOD_ALT, "shift" => MOD_SHIFT, "win" => MOD_WIN, _ => 0u };
         _registered = RegisterHotKey(_source.Handle, Id, mods, (uint)key);
-        LastError = _registered ? null : $"{hk.Display()} is already taken by another app.";
+        var err = Marshal.GetLastWin32Error();
+        LastError = _registered ? null : err == 1409 /* ERROR_HOTKEY_ALREADY_REGISTERED */
+            ? $"{hk.Display()} is taken by another app — pick a different hotkey in Settings."
+            : $"Hotkey {hk.Display()} could not be registered (error {err}).";
         return _registered;
     }
 

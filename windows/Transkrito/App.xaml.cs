@@ -57,7 +57,7 @@ public partial class App : Application
     public void ApplyHotkey(HotkeySetting hk)
     {
         if (_hotkey is null || _app is null) return;
-        if (!_hotkey.Register(hk)) _app.SetStatus(_hotkey.LastError ?? "Hotkey unavailable", error: true);
+        _app.HotkeyError = _hotkey.Register(hk) ? null : _hotkey.LastError ?? "Hotkey unavailable";
     }
 
     public void ShowMain()

@@ -64,7 +64,16 @@ public sealed class AppController : INotifyPropertyChanged, IDisposable
         set { _model = value; Settings.Model = value.Id; Settings.Save(); OnChanged(); _ = LoadModelAsync(); }
     }
 
-    public string HotkeyLabel => Settings.Hotkey.Display();
+    public string HotkeyLabel => HotkeyError ?? Settings.Hotkey.Display();
+
+    private string? _hotkeyError;
+    /// <summary>Set when RegisterHotKey fails (combination taken by another app). Shown in place of the hotkey hint.</summary>
+    public string? HotkeyError
+    {
+        get => _hotkeyError;
+        set { _hotkeyError = value; OnChanged(); OnChanged(nameof(HotkeyLabel)); OnChanged(nameof(HotkeyHasError)); }
+    }
+    public bool HotkeyHasError => HotkeyError is not null;
 
     public void SetStatus(string text, bool error = false) { Status = text; StatusIsError = error; }
 

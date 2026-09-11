@@ -40,6 +40,14 @@ public sealed class StringEmptyToVisibilityConverter : IValueConverter
     public object ConvertBack(object value, Type t, object p, CultureInfo c) => throw new NotSupportedException();
 }
 
+/// <summary>true → 1*, false → 0: collapses a grid column together with its content.</summary>
+public sealed class BoolToStarConverter : IValueConverter
+{
+    public object Convert(object value, Type t, object p, CultureInfo c) =>
+        value is bool b && b ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
+    public object ConvertBack(object value, Type t, object p, CultureInfo c) => throw new NotSupportedException();
+}
+
 /// <summary>Attached placeholder text for the Field style.</summary>
 public static class FieldHelper
 {

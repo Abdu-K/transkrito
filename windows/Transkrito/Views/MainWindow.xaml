@@ -64,9 +64,19 @@
 
             <!-- Start / Stop + hotkey hint -->
             <StackPanel Grid.Row="2" HorizontalAlignment="Center" Orientation="Vertical">
-                <Button Style="{StaticResource Button.Pill}" Content="{Binding ActionLabel}" Click="OnToggle" MinWidth="{StaticResource Comp.PillMinWidth}"
+                <Button Style="{StaticResource Button.Pill}" Content="{Binding ActionLabel}" Click="OnToggle" MinWidth="{StaticResource Comp.PillMinWidth}" HorizontalAlignment="Center"
                         IsEnabled="{Binding IsTranscribing, Converter={StaticResource InverseBool}}" />
-                <TextBlock Style="{StaticResource Text.Mono}" Text="{Binding HotkeyLabel}" HorizontalAlignment="Center" Margin="{StaticResource Pad.S2}" />
+                <TextBlock Text="{Binding HotkeyLabel}" HorizontalAlignment="Center" Margin="{StaticResource Pad.S2}">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock" BasedOn="{StaticResource Text.Mono}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HotkeyHasError}" Value="True">
+                                    <Setter Property="Foreground" Value="{StaticResource Brush.StateDanger}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
             </StackPanel>
 
             <!-- History | Dictionary -->

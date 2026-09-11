@@ -19,7 +19,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="{Binding IsCorrection, Converter={StaticResource BoolToStar}}" />
                     </Grid.ColumnDefinitions>
                     <TextBox Grid.Column="0" Style="{StaticResource Field}" Text="{Binding Hear, UpdateSourceTrigger=PropertyChanged}"
                              d:FieldHelper.Placeholder="{Binding HearPlaceholder}" KeyDown="OnEditorKey" />
