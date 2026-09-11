@@ -103,6 +103,7 @@ public static class Tokens
         public const double PillMinWidth = 120;
         public const double TabGap = 24;
         public const double TrayMenuMinWidth = 180;
+        public const double SettingsLabelWidth = 120;
     }
     public const int BiasMaxTerms = 40;
 }

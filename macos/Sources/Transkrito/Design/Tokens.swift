@@ -46,7 +46,7 @@ enum Tokens {
         /// listening indicator (pulses)
         static let stateRecording = Color(.sRGB, red: 0.2902, green: 0.5451, blue: 0.8392, opacity: 1.0)
     }
-    enum Type {
+    enum TypeScale {
         static let caption = TextStyle(size: 11, line: 14, weight: .regular, tracking: 0, design: .default)
         static let body = TextStyle(size: 13, line: 18, weight: .regular, tracking: 0, design: .default)
         static let transcript = TextStyle(size: 15, line: 22, weight: .regular, tracking: 0, design: .default)
@@ -87,6 +87,8 @@ enum Tokens {
         static let levelAttack: Double = 0.06
         static let levelRelease: Double = 0.22
         static let pillarSpring = Animation.spring(response: 0.28, dampingFraction: 0.85)
+        /// Time constant for the per-frame Canvas lerp (same feel as the spring, used when we step manually).
+        static let pillarSpringLerp: Double = 0.12
         static let statusPulse: Double = 1.6
         static let statusPulseMin: Double = 0.55
         static let statusPulseMax: Double = 1.0
@@ -133,6 +135,7 @@ enum Tokens {
         static let pillMinWidth: CGFloat = 120
         static let tabGap: CGFloat = 24
         static let trayMenuMinWidth: CGFloat = 180
+        static let settingsLabelWidth: CGFloat = 120
     }
     static let biasMaxTerms = 40
 }

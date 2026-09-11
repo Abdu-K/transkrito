@@ -210,7 +210,7 @@ for name, h, a, use in colors:
     if use: sw.append(f'        /// {use}')
     sw.append(f'        static let {name[0].lower()+name[1:]} = Color(.sRGB, red: {r:.4f}, green: {g:.4f}, blue: {b:.4f}, opacity: {a})')
 sw.append('    }')
-sw.append('    enum Type {')
+sw.append('    enum TypeScale {')
 for key in ("caption", "body", "transcript", "status", "title", "mono"):
     t = T["type"][key]
     weight = {400: ".regular", 500: ".medium", 600: ".semibold"}[t["weight"]]
@@ -241,6 +241,8 @@ for k in ("fast", "base", "slow"):
 sw.append(f'        static let levelAttack: Double = {m["level"]["attackMs"]/1000}')
 sw.append(f'        static let levelRelease: Double = {m["level"]["releaseMs"]/1000}')
 sw.append(f'        static let pillarSpring = Animation.spring(response: {m["pillarSpring"]["response"]}, dampingFraction: {m["pillarSpring"]["damping"]})')
+sw.append(f'        /// Time constant for the per-frame Canvas lerp (same feel as the spring, used when we step manually).')
+sw.append(f'        static let pillarSpringLerp: Double = {m["pillarSpring"]["wpfLerpMs"]/1000}')
 sw.append(f'        static let statusPulse: Double = {sp["periodMs"]/1000}')
 sw.append(f'        static let statusPulseMin: Double = {sp["opacityMin"]}')
 sw.append(f'        static let statusPulseMax: Double = {sp["opacityMax"]}')
@@ -293,4 +295,8 @@ sw.append('    func textStyle(_ s: TextStyle) -> some View { self.font(s.font).t
 sw.append('}')
 os.makedirs(os.path.join(ROOT, "macos", "Sources", "Transkrito", "Design"), exist_ok=True)
 open(os.path.join(ROOT, "macos", "Sources", "Transkrito", "Design", "Tokens.swift"), "w", encoding="utf-8").write("\n".join(sw) + "\n")
+# common-words.txt is shared; SwiftPM resources must live inside the target, so mirror it.
+import shutil
+os.makedirs(os.path.join(ROOT, "macos", "Sources", "Transkrito", "Resources"), exist_ok=True)
+shutil.copyfile(os.path.join(ROOT, "shared", "common-words.txt"), os.path.join(ROOT, "macos", "Sources", "Transkrito", "Resources", "common-words.txt"))
 print("tokens generated")
