@@ -44,8 +44,6 @@ public static class Tokens
         public static readonly System.Windows.Media.Color LineGlass2 = System.Windows.Media.Color.FromArgb(51, 240, 248, 255);
         /// <summary>border.glass.strong — focused / active edges</summary>
         public static readonly System.Windows.Media.Color LineGlassStrong = System.Windows.Media.Color.FromArgb(102, 240, 248, 255);
-        /// <summary>resting pillar fill</summary>
-        public static readonly System.Windows.Media.Color PillarIdle = System.Windows.Media.Color.FromArgb(46, 240, 248, 255);
         /// <summary>speaking pillar gradient top — ice</summary>
         public static readonly System.Windows.Media.Color PillarGlassFillTop = System.Windows.Media.Color.FromArgb(242, 125, 211, 252);
         /// <summary>speaking pillar gradient bottom — cobalt</summary>
@@ -77,7 +75,10 @@ public static class Tokens
         public const double EnvelopeFloor = 0.15;
         public const double Jitter = 0.06;
         public const double SpeakingThreshold = 0.06;
-        public const double IdleLevel = 0.3;
+        public const double IdleLevel = 0.45;
+        public const double RestAlpha = 0.42;
+        public const double GlowFloor = 0.35;
+        public const double HighlightInset = 0.32;
         public const double HighlightWidth = 1.5;
         public const double HighlightCoverage = 0.4;
         public const double EdgeWidth = 0.75;
@@ -123,7 +124,7 @@ public static class Tokens
         public const double ChipPaddingH = 8;
         public const double ChipPaddingV = 2;
         public const double ScrollbarWidth = 6;
-        public const double PillarsAreaHeight = 180;
+        public const double PillarsAreaHeight = 240;
         public const double IconSize = 16;
         public const double TabGap = 24;
         public const double TrayMenuMinWidth = 180;
@@ -143,6 +144,7 @@ public static class Tokens
         public const double RowGap = 2;
         public const double StatusDot = 8;
         public const double DayHeaderTracking = 0.6;
+        public const double HeroTop = 48;
     }
     public const int BiasMaxTerms = 40;
 }

@@ -41,9 +41,21 @@ public partial class MainWindow : Window
     private void OnNav(object sender, RoutedEventArgs e)
     {
         if (PageDictation is null || PageDictionary is null || PageSettings is null) return;
-        PageDictation.Visibility = NavDictation.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
-        PageDictionary.Visibility = NavDictionary.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
-        PageSettings.Visibility = NavSettings.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+        Show(PageDictation, NavDictation.IsChecked == true);
+        Show(PageDictionary, NavDictionary.IsChecked == true);
+        Show(PageSettings, NavSettings.IsChecked == true);
+    }
+
+    /// <summary>The one authored moment on navigation: the incoming page fades in over motion.fast, ease-out.</summary>
+    private static void Show(UIElement page, bool visible)
+    {
+        if (!visible) { page.Visibility = Visibility.Collapsed; return; }
+        if (page.Visibility == Visibility.Visible) return;
+        page.Visibility = Visibility.Visible;
+        page.BeginAnimation(OpacityProperty, new System.Windows.Media.Animation.DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(Tokens.Motion.FastMs))
+        {
+            EasingFunction = new System.Windows.Media.Animation.ExponentialEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut },
+        });
     }
 
     /// <summary>Closing hides to the tray; the app keeps running for the hotkey. Quit lives in the tray menu.</summary>

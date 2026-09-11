@@ -40,14 +40,17 @@ public partial class DictationPage : UserControl, ISearchable, INotifyPropertyCh
         var items = _app.History.Search(SearchBox.Text).ToList();
         Groups.ItemsSource = items
             .GroupBy(t => t.DayKey)
-            .Select(g => new DayGroup(g.First().DayLabel, g.ToList()))
+            .Select(g => new DayGroup(g.First().DayLabel.ToUpperInvariant(), g.ToList()))
             .ToList();
         Empty.Visibility = items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
 
         var (today, words, streak) = _app.History.Stats();
-        StatsLine.Text = today == 0
-            ? "Nothing dictated today"
-            : $"Today · {today} {(today == 1 ? "dictation" : "dictations")} · {words} words" + (streak > 1 ? $" · {streak}-day streak" : "");
+        var all = _app.History.Items;
+        StatsLine.Text = today > 0
+            ? $"Today · {today} {(today == 1 ? "dictation" : "dictations")} · {words} words" + (streak > 1 ? $" · {streak}-day streak" : "")
+            : all.Count == 0
+                ? "Nothing dictated yet"
+                : $"{all.Count} {(all.Count == 1 ? "dictation" : "dictations")} · {all.Sum(t => t.WordCount)} words · last {all[0].DayLabel.ToLowerInvariant()}";
 
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(EmptyTitle)));
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(EmptyHint)));

@@ -22,7 +22,6 @@
   <Color x:Key="Color.LineGlass1">#1AF0F8FF</Color>
   <Color x:Key="Color.LineGlass2">#33F0F8FF</Color>
   <Color x:Key="Color.LineGlassStrong">#66F0F8FF</Color>
-  <Color x:Key="Color.PillarIdle">#2EF0F8FF</Color>
   <Color x:Key="Color.PillarGlassFillTop">#F27DD3FC</Color>
   <Color x:Key="Color.PillarGlassFillBottom">#F21C4ED8</Color>
   <Color x:Key="Color.PillarGlassHighlight">#B2FFFFFF</Color>
@@ -52,7 +51,6 @@
   <SolidColorBrush x:Key="Brush.LineGlass1" Color="{StaticResource Color.LineGlass1}" />
   <SolidColorBrush x:Key="Brush.LineGlass2" Color="{StaticResource Color.LineGlass2}" />
   <SolidColorBrush x:Key="Brush.LineGlassStrong" Color="{StaticResource Color.LineGlassStrong}" />
-  <SolidColorBrush x:Key="Brush.PillarIdle" Color="{StaticResource Color.PillarIdle}" />
   <SolidColorBrush x:Key="Brush.PillarGlassFillTop" Color="{StaticResource Color.PillarGlassFillTop}" />
   <SolidColorBrush x:Key="Brush.PillarGlassFillBottom" Color="{StaticResource Color.PillarGlassFillBottom}" />
   <SolidColorBrush x:Key="Brush.PillarGlassHighlight" Color="{StaticResource Color.PillarGlassHighlight}" />
@@ -159,7 +157,7 @@
   <sys:Double x:Key="Comp.ChipPaddingH">8</sys:Double>
   <sys:Double x:Key="Comp.ChipPaddingV">2</sys:Double>
   <sys:Double x:Key="Comp.ScrollbarWidth">6</sys:Double>
-  <sys:Double x:Key="Comp.PillarsAreaHeight">180</sys:Double>
+  <sys:Double x:Key="Comp.PillarsAreaHeight">240</sys:Double>
   <sys:Double x:Key="Comp.IconSize">16</sys:Double>
   <sys:Double x:Key="Comp.TabGap">24</sys:Double>
   <sys:Double x:Key="Comp.TrayMenuMinWidth">180</sys:Double>
@@ -179,14 +177,17 @@
   <sys:Double x:Key="Comp.RowGap">2</sys:Double>
   <sys:Double x:Key="Comp.StatusDot">8</sys:Double>
   <sys:Double x:Key="Comp.DayHeaderTracking">0.6</sys:Double>
+  <sys:Double x:Key="Comp.HeroTop">48</sys:Double>
   <Thickness x:Key="Pad.Field">12,8</Thickness>
   <Thickness x:Key="Pad.Chip">8,2</Thickness>
   <Thickness x:Key="Pad.PillH">24,0</Thickness>
   <Thickness x:Key="Pad.Right.S2">0,0,8,0</Thickness>
   <Thickness x:Key="Pad.Right.S3">0,0,12,0</Thickness>
+  <Thickness x:Key="Pad.Right.S4">0,0,16,0</Thickness>
   <Thickness x:Key="Pad.Rail">16</Thickness>
   <Thickness x:Key="Pad.Page">32</Thickness>
   <Thickness x:Key="Pad.PageX">32,0</Thickness>
+  <Thickness x:Key="Pad.Hero">32,80,32,32</Thickness>
   <Thickness x:Key="Pad.Gap.S4">16,0,0,0</Thickness>
   <Thickness x:Key="Pad.Below.S4">0,16,0,0</Thickness>
   <Thickness x:Key="Pad.RowGap">0,0,0,2</Thickness>

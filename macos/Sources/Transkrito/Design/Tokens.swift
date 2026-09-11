@@ -40,8 +40,6 @@ enum Tokens {
         static let lineGlass2 = Color(.sRGB, red: 0.9412, green: 0.9725, blue: 1.0000, opacity: 0.2)
         /// border.glass.strong — focused / active edges
         static let lineGlassStrong = Color(.sRGB, red: 0.9412, green: 0.9725, blue: 1.0000, opacity: 0.4)
-        /// resting pillar fill
-        static let pillarIdle = Color(.sRGB, red: 0.9412, green: 0.9725, blue: 1.0000, opacity: 0.18)
         /// speaking pillar gradient top — ice
         static let pillarGlassFillTop = Color(.sRGB, red: 0.4902, green: 0.8275, blue: 0.9882, opacity: 0.95)
         /// speaking pillar gradient bottom — cobalt
@@ -126,7 +124,10 @@ enum Tokens {
         static let envelopeFloor: Double = 0.15
         static let jitter: Double = 0.06
         static let speakingThreshold: Double = 0.06
-        static let idleLevel: Double = 0.3
+        static let idleLevel: Double = 0.45
+        static let restAlpha: Double = 0.42
+        static let glowFloor: Double = 0.35
+        static let highlightInset: CGFloat = 0.32
         static let highlightWidth: CGFloat = 1.5
         static let highlightCoverage: CGFloat = 0.4
         static let edgeWidth: CGFloat = 0.75
@@ -154,7 +155,7 @@ enum Tokens {
         static let chipPaddingH: CGFloat = 8
         static let chipPaddingV: CGFloat = 2
         static let scrollbarWidth: CGFloat = 6
-        static let pillarsAreaHeight: CGFloat = 180
+        static let pillarsAreaHeight: CGFloat = 240
         static let iconSize: CGFloat = 16
         static let tabGap: CGFloat = 24
         static let trayMenuMinWidth: CGFloat = 180
@@ -174,6 +175,7 @@ enum Tokens {
         static let rowGap: CGFloat = 2
         static let statusDot: CGFloat = 8
         static let dayHeaderTracking: CGFloat = 0.6
+        static let heroTop: CGFloat = 48
     }
     static let biasMaxTerms = 40
 }

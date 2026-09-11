@@ -57,8 +57,6 @@
     <Style x:Key="Text.DayHeader" TargetType="TextBlock" BasedOn="{StaticResource Text.Caption}">
         <Setter Property="Foreground" Value="{StaticResource Brush.InkTertiary}" />
         <Setter Property="FontWeight" Value="Medium" />
-        <Setter Property="Typography.Capitals" Value="AllSmallCaps" />
-        <Setter Property="FontSize" Value="{StaticResource Type.Body.Size}" />
     </Style>
     <Style x:Key="Text.Body" TargetType="TextBlock" BasedOn="{StaticResource Text.Base}">
         <Setter Property="FontSize" Value="{StaticResource Type.Body.Size}" />

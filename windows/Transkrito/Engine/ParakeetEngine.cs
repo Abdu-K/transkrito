@@ -21,8 +21,8 @@ public sealed class ParakeetEngine : IDisposable
     public bool BiasSupported => false;
 
     public string BiasStatus => LoadedModel is null
-        ? "No model loaded."
-        : "Engine biasing: not supported by Parakeet TDT (greedy decoding). Corrections still apply.";
+        ? "Loads at start-up. Parakeet TDT cannot be biased (greedy decoding) — the dictionary works by correction only."
+        : "Loaded. Parakeet TDT cannot be biased (greedy decoding) — the dictionary works by correction only.";
 
     /// <summary>Loads the model on a background thread. Throws if the files are missing.</summary>
     public Task LoadAsync(ModelInfo model) => Task.Run(() =>

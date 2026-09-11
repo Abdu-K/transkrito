@@ -8,17 +8,18 @@ struct DictationPage: View {
     var body: some View {
         VStack(spacing: 0) {
             VStack(spacing: Tokens.Space.s3) {
-                PillarsView(level: app.level)
+                PillarsView(level: app.level, listening: app.isListening)
                 HStack(spacing: Tokens.Space.s4) {
-                    MicButton()
                     VStack(alignment: .leading, spacing: Tokens.Space.s1) {
                         Text("\(app.holdToTalkVerb) \(app.hotkeyLabel) anywhere")
                             .textStyle(Tokens.TypeScale.status).foregroundStyle(Tokens.Colors.inkPrimary)
                         Text(statsLine).textStyle(Tokens.TypeScale.caption).foregroundStyle(Tokens.Colors.inkSecondary)
                     }
+                    MicButton()
                 }
             }
             .padding(Tokens.Space.s6)
+            .padding(.top, Tokens.Comp.heroTop)
 
             VStack(spacing: Tokens.Space.s3) {
                 TextField("Search dictations", text: $query).field(icon: "magnifyingglass")
@@ -57,7 +58,12 @@ struct DictationPage: View {
 
     private var statsLine: String {
         let s = app.history.stats()
-        if s.today == 0 { return "Nothing dictated today" }
+        if s.today == 0 {
+            let all = app.history.items
+            if all.isEmpty { return "Nothing dictated yet" }
+            let words = all.reduce(0) { $0 + $1.wordCount }
+            return "\(all.count) \(all.count == 1 ? "dictation" : "dictations") \u{00B7} \(words) words \u{00B7} last \(all[0].dayLabel.lowercased())"
+        }
         var line = "Today \u{00B7} \(s.today) \(s.today == 1 ? "dictation" : "dictations") \u{00B7} \(s.wordsToday) words"
         if s.streak > 1 { line += " \u{00B7} \(s.streak)-day streak" }
         return line

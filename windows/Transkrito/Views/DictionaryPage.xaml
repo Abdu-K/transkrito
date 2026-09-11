@@ -112,6 +112,10 @@
                                     <Setter TargetName="Actions" Property="Opacity" Value="1" />
                                     <Setter TargetName="Row" Property="Background" Value="{StaticResource Brush.SurfaceGlass1}" />
                                 </Trigger>
+                                <Trigger SourceName="Row" Property="IsKeyboardFocusWithin" Value="True">
+                                    <Setter TargetName="Actions" Property="Opacity" Value="1" />
+                                    <Setter TargetName="Row" Property="Background" Value="{StaticResource Brush.SurfaceGlass1}" />
+                                </Trigger>
                             </DataTemplate.Triggers>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>

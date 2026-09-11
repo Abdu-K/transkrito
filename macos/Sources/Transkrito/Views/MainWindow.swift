@@ -14,12 +14,14 @@ struct MainWindow: View {
             ZStack {
                 if page == .dictation { DeepWash() }
                 switch page {
-                case .dictation: DictationPage()
-                case .dictionary: DictionaryPage()
-                case .settings: SettingsPage()
+                case .dictation: DictationPage().id(Page.dictation)
+                case .dictionary: DictionaryPage().id(Page.dictionary)
+                case .settings: SettingsPage().id(Page.settings)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .transition(.opacity)
+            .animation(.easeOut(duration: Tokens.Motion.fast), value: page)
         }
         .background(WindowBackground())
         .frame(minWidth: Tokens.Layout.windowMinWidth, minHeight: Tokens.Layout.windowMinHeight)

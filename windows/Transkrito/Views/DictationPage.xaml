@@ -10,17 +10,14 @@
         </Grid.RowDefinitions>
 
         <!-- Hero: the instrument. Pillars, then the hotkey + mic as one line, then one quiet stats line. -->
-        <StackPanel Grid.Row="0" Margin="{StaticResource Pad.Page}" HorizontalAlignment="Center">
-            <v:PillarsControl Height="{StaticResource Comp.PillarsAreaHeight}" HorizontalAlignment="Center" Level="{Binding Level}" />
+        <StackPanel Grid.Row="0" Margin="{StaticResource Pad.Hero}" HorizontalAlignment="Center">
+            <v:PillarsControl Height="{StaticResource Comp.PillarsAreaHeight}" HorizontalAlignment="Center" Level="{Binding Level}" IsListening="{Binding IsListening}" />
             <Grid Margin="{StaticResource Pad.Below.S3}" HorizontalAlignment="Center">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <Button Grid.Column="0" x:Name="MicButton" Style="{StaticResource Button.Mic}" ToolTip="{Binding HotkeyHint}"
-                        PreviewMouseLeftButtonDown="OnMicDown" PreviewMouseLeftButtonUp="OnMicUp" MouseLeave="OnMicLeave"
-                        IsEnabled="{Binding IsTranscribing, Converter={StaticResource InverseBool}}" VerticalAlignment="Center" />
-                <StackPanel Grid.Column="1" Margin="{StaticResource Pad.Gap.S4}" VerticalAlignment="Center">
+                <StackPanel Grid.Column="0" Margin="{StaticResource Pad.Right.S4}" VerticalAlignment="Center">
                     <TextBlock Style="{StaticResource Text.Status}" Foreground="{StaticResource Brush.InkPrimary}">
                         <TextBlock.Text>
                             <MultiBinding StringFormat="{}{0} {1} anywhere">
@@ -31,6 +28,9 @@
                     </TextBlock>
                     <TextBlock x:Name="StatsLine" Style="{StaticResource Text.Caption}" Margin="{StaticResource Pad.Below.S1}" />
                 </StackPanel>
+                <Button Grid.Column="1" x:Name="MicButton" Style="{StaticResource Button.Mic}" ToolTip="{Binding HotkeyHint}"
+                        PreviewMouseLeftButtonDown="OnMicDown" PreviewMouseLeftButtonUp="OnMicUp" MouseLeave="OnMicLeave"
+                        IsEnabled="{Binding IsTranscribing, Converter={StaticResource InverseBool}}" VerticalAlignment="Center" />
             </Grid>
         </StackPanel>
 
@@ -88,6 +88,10 @@
                                                 </Border>
                                                 <DataTemplate.Triggers>
                                                     <Trigger SourceName="Row" Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="Actions" Property="Opacity" Value="1" />
+                                                        <Setter TargetName="Row" Property="Background" Value="{StaticResource Brush.SurfaceGlass1}" />
+                                                    </Trigger>
+                                                    <Trigger SourceName="Row" Property="IsKeyboardFocusWithin" Value="True">
                                                         <Setter TargetName="Actions" Property="Opacity" Value="1" />
                                                         <Setter TargetName="Row" Property="Background" Value="{StaticResource Brush.SurfaceGlass1}" />
                                                     </Trigger>

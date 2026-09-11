@@ -8,7 +8,8 @@ final class PillarModel {
     private var jitter = [Double](repeating: 0, count: n)
     private var jitterTarget = [Double](repeating: 0, count: n)
     private(set) var heights = [CGFloat](repeating: 0, count: n)
-    private(set) var speaking: Double = 0
+    /// 0..1 glass strength blend: rest → listening. Lights with the key, not the first syllable.
+    private(set) var lit: Double = 0
     private var last: TimeInterval = 0
     private var clock: TimeInterval = 0 // for the idle breathing cycle
     private var rng = SystemRandomNumberGenerator()
@@ -22,18 +23,15 @@ final class PillarModel {
         }
     }
 
-    /// Advance to `now` with the current level. Returns true when nothing is moving.
-    @discardableResult
-    func step(now: TimeInterval, level: Double) -> Bool {
+    /// Advance to `now` with the current level and listening state.
+    func step(now: TimeInterval, level: Double, listening: Bool) {
         let dt = last == 0 ? 1 / 60.0 : min(0.1, now - last)
         last = now
         clock += dt
         let k = 1 - exp(-dt / (Tokens.Motion.pillarSpringLerp))
-        let kSpeak = 1 - exp(-dt / Tokens.Motion.base)
-        let speakingTarget: Double = level >= Tokens.Pillar.speakingThreshold ? 1 : 0
-        speaking += (speakingTarget - speaking) * kSpeak
+        let kLit = 1 - exp(-dt / Tokens.Motion.base)
+        lit += ((listening ? 1.0 : 0.0) - lit) * kLit
 
-        var moving = false
         for i in 0...Self.half {
             if abs(jitter[i] - jitterTarget[i]) < 0.005 {
                 jitterTarget[i] = Double.random(in: -Tokens.Pillar.jitter...Tokens.Pillar.jitter, using: &rng)
@@ -46,22 +44,21 @@ final class PillarModel {
                 * drive * envelope[i] * (1 + jitter[i] * min(1, level * 4))
             heights[i] += (target - heights[i]) * k
             heights[Self.n - 1 - i] = heights[i]
-            if abs(target - heights[i]) > 0.05 { moving = true }
         }
-        return !moving && abs(speakingTarget - speaking) < 0.01
     }
 }
 
-/// The central audio visualization: symmetrical rounded pillars, tallest in the middle.
-/// Only speaking pillars get the glass treatment (fill gradient, inner highlight, edge, soft glow).
+/// The central audio visualization: symmetrical glass capsules, tallest in the middle.
+/// Every pillar is glass at rest (low alpha); holding the hotkey brings it to full strength and the level drives glow.
 struct PillarsView: View {
     let level: Double
+    let listening: Bool
     @State private var model = PillarModel()
 
     var body: some View {
         TimelineView(.animation) { timeline in
             Canvas { ctx, size in
-                model.step(now: timeline.date.timeIntervalSinceReferenceDate, level: level)
+                model.step(now: timeline.date.timeIntervalSinceReferenceDate, level: level, listening: listening)
                 draw(ctx: ctx, size: size)
             }
         }
@@ -77,10 +74,10 @@ struct PillarsView: View {
         let w = Tokens.Pillar.width, gap = Tokens.Pillar.gap
         let x0 = (size.width - totalWidth) / 2
         let cy = size.height / 2
-        let speaking = model.speaking
+        let lit = model.lit
 
-        // Glow: token shadow.glow, alpha scaled by level and the glass blend.
-        let glowAlpha = Tokens.Shadow.glow.alpha * speaking * min(1, level * 1.5)
+        // Glow: token shadow.glow, alpha scaled by the lit blend and the level.
+        let glowAlpha = Tokens.Shadow.glow.alpha * lit * (Tokens.Pillar.glowFloor + (1 - Tokens.Pillar.glowFloor) * min(1, level * 1.5))
         if glowAlpha > 0.005 {
             var glow = ctx
             glow.addFilter(.blur(radius: Tokens.Shadow.glow.blur / 2))
@@ -91,21 +88,22 @@ struct PillarsView: View {
             }
         }
 
+        // Glass strength: rest alpha from tokens, rising to full while listening.
+        let strength = Tokens.Pillar.restAlpha + (1 - Tokens.Pillar.restAlpha) * lit
         for i in 0..<PillarModel.n {
             let h = model.heights[i]
             let rect = CGRect(x: x0 + CGFloat(i) * (w + gap), y: cy - h / 2, width: w, height: h)
             let shape = Capsule().path(in: rect)
-            ctx.fill(shape, with: .color(Tokens.Colors.pillarIdle))
-            if speaking > 0.01 {
+            do {
                 var g = ctx
-                g.opacity = speaking
+                g.opacity = strength
                 g.fill(shape, with: .linearGradient(
                     Gradient(colors: [Tokens.Colors.pillarGlassFillTop, Tokens.Colors.pillarGlassFillBottom]),
                     startPoint: CGPoint(x: rect.midX, y: rect.minY), endPoint: CGPoint(x: rect.midX, y: rect.maxY)))
                 g.stroke(shape, with: .color(Tokens.Colors.pillarGlassEdge), lineWidth: Tokens.Pillar.edgeWidth)
                 // Inner highlight: short vertical stroke inside the left edge, top portion only.
                 var hl = Path()
-                let hx = rect.minX + w * 0.32
+                let hx = rect.minX + w * Tokens.Pillar.highlightInset
                 hl.move(to: CGPoint(x: hx, y: rect.minY + w * 0.45))
                 hl.addLine(to: CGPoint(x: hx, y: rect.minY + max(w * 0.6, h * Tokens.Pillar.highlightCoverage)))
                 g.stroke(hl, with: .color(Tokens.Colors.pillarGlassHighlight),
