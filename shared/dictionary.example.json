@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "entries": [
+    { "id": "5b1a6e9e-3d0c-4b7a-9a11-1f0d8c1a0001", "type": "term", "text": "Anthropic", "created": "2026-09-11T10:00:00Z" },
+    { "id": "5b1a6e9e-3d0c-4b7a-9a11-1f0d8c1a0002", "type": "term", "text": "Vercel", "created": "2026-09-11T10:00:01Z" },
+    { "id": "5b1a6e9e-3d0c-4b7a-9a11-1f0d8c1a0003", "type": "term", "text": "Supabase", "created": "2026-09-11T10:00:02Z" },
+    { "id": "5b1a6e9e-3d0c-4b7a-9a11-1f0d8c1a0004", "type": "correction", "hear": "cloud code", "write": "Claude Code", "created": "2026-09-11T10:00:03Z" }
+  ]
+}

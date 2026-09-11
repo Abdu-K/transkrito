@@ -1,0 +1,12 @@
+# .NET
+windows/**/bin/
+windows/**/obj/
+windows/**/*.user
+# Swift
+macos/.build/
+macos/build/
+macos/*.xcodeproj
+macos/.swiftpm/
+# misc
+.DS_Store
+Thumbs.db

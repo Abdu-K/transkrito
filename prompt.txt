@@ -1,0 +1,77 @@
+app name transkrito 
+
+Now turn this into a proper macOS application.
+
+Not a menu bar utility. A real app: dock icon, app menu, a standard resizable window,
+a Settings window on Cmd+comma, and a double-clickable .app I can keep in
+Applications. Drop LSUIElement.
+
+Keep a menu bar item as well, for status and the hotkey while I'm working in another
+app - but it is secondary now, not the whole interface.
+
+The main window holds:
+- Past transcriptions, searchable, with copy on each one.
+- The live level meter while recording.
+- Start and stop.
+- A Dictionary.
+
+Settings holds the hotkey and the model.
+
+THE DICTIONARY
+
+A place I can teach it words it keeps getting wrong - names, jargon, product names,
+the people I work with. Add, edit, delete, and search. It should persist and be
+editable as a plain file as well as in the UI.
+
+Two entry types:
+
+1. A word or phrase I want it to know. "Anthropic", "Vercel", "Supabase".
+2. A correction pair - when you hear X, write Y. "cloud code" becomes "Claude Code".
+
+Implement both mechanisms, because one alone is not enough:
+
+First, bias the engine before it transcribes. Pass my dictionary words to the
+speech engine as context so it leans toward producing them - whatever the engine
+supports for this. Keep the list short when you pass it; long context makes these
+models drift and invent text on quiet audio.
+
+Second, run a correction pass on the text afterward. Whole-word, case-insensitive,
+longest match first. This is the guaranteed path - biasing is a nudge, not a
+promise, and it will not catch everything.
+
+The correction pass must handle words the model glues together. If I add "Claude
+Code" it has to catch "CloudCode" and "Cloud-Code", not just the spaced version.
+Match on optional whitespace or hyphen between the parts.
+
+Be careful not to corrupt real words. A correction for "Claude Code" must never
+touch "Cloudflare" or the ordinary word "cloud". Require the full pattern, and show
+me a warning in the UI if an entry I add looks like it would match something common.
+
+In the transcription history, show me when a correction fired and what it changed,
+so I can tell whether the dictionary is doing anything.
+
+Before you write any of it, define a design system and write it down as tokens I
+can point at later - color, type scale, spacing, corner radius, border, shadow,
+motion. Every view pulls from those tokens. No one-off values in the components.
+
+The direction is quiet, minimal, and fluid. A simple voice interface built around soft blue light, balanced symmetry, and one central audio visualization. It should feel premium and responsive without looking like a glassmorphism dashboard.
+
+Use a clean background with a subtle transition between deep blue and pale icy blue. Keep the background mostly empty, calm, and atmospheric. Do not fill it with decorative waves, panels, cards, or visible interface containers.
+
+The central visual is a simple symmetrical audio wave made from rounded vertical pillars. The pillars extend outward from the center in a balanced mirrored arrangement, with the tallest forms near the middle and gradually shorter forms toward both sides.
+
+Only the speaking pillars should have a light-blue glass quality: translucent depth, soft internal highlights, gentle refraction, and clean rounded edges. They should feel light and elegant, not thick, inflated, overly glossy, or three-dimensional.
+
+When the user speaks, the pillars respond smoothly to the voice in real time. Their height and light intensity change with the volume while preserving an overall sense of symmetry. The movement should feel fluid, precise, and calm rather than jumpy or exaggerated.
+
+Keep all remaining interface elements flat, subtle, and minimal. Use only the essential controls and text, with generous spacing and no sidebar, dashboard layout, large navigation system, floating cards, or ornamental UI.
+
+Typography should be clean, modern, and understated. Use a neutral sans-serif typeface, a simple hierarchy, and restrained blue-gray text.
+
+This should feel like a focused listening experience, not a complete software dashboard. The audio visualization is the visual identity; everything else should quietly support it.
+
+Do not make the entire interface glassy. Do not use large glass panels, frosted windows, oversized background waves, reflective floors, floating bubbles, heavy shadows, excessive glow, bright cyan saturation, or complex layered decoration. Avoid anything that feels bulky, futuristic, corporate, or AI-generated. Keep it simple, balanced, responsive, and premium.
+
+Show me the design tokens first and let me approve them before you build the views.
+
+The engine stays exactly as it is. This is the interface layer only.
