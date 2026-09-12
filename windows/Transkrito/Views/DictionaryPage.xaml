@@ -20,12 +20,12 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <TextBox Grid.Column="0" Style="{StaticResource Field}" Text="{Binding Hear, UpdateSourceTrigger=PropertyChanged}"
-                             d:FieldHelper.Placeholder="{Binding HearPlaceholder}" KeyDown="OnEditorKey" />
+                             d:FieldHelper.Placeholder="{Binding HearPlaceholder}" KeyDown="OnEditorKey" d:FieldHelper.AutoDirection="True" />
                     <TextBlock Grid.Column="1" Style="{StaticResource Text.Body}" Text="&#x2192;" Foreground="{StaticResource Brush.InkTertiary}"
                                VerticalAlignment="Center" Margin="{StaticResource Pad.S2}"
                                Visibility="{Binding IsCorrection, Converter={StaticResource BoolToVis}}" />
                     <TextBox Grid.Column="2" Style="{StaticResource Field}" Text="{Binding Write, UpdateSourceTrigger=PropertyChanged}"
-                             d:FieldHelper.Placeholder="Write it as" KeyDown="OnEditorKey"
+                             d:FieldHelper.Placeholder="Write it as" KeyDown="OnEditorKey" d:FieldHelper.AutoDirection="True"
                              Visibility="{Binding IsCorrection, Converter={StaticResource BoolToVis}}" />
                     <StackPanel Grid.Column="3" Orientation="Horizontal" Margin="{StaticResource Pad.Gap.S2}">
                         <Button Style="{StaticResource Button.Primary}" Content="{Binding SaveLabel}" Click="OnSave" Tag="{Binding}" IsEnabled="{Binding CanSave}" />
@@ -92,10 +92,10 @@
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0" Orientation="Horizontal" Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisInverse}}">
-                                        <TextBlock Style="{StaticResource Text.Body}" Text="{Binding Hear}" VerticalAlignment="Center" />
+                                        <TextBlock Style="{StaticResource Text.Body}" Text="{Binding Hear}" VerticalAlignment="Center" FlowDirection="{Binding Hear, Converter={StaticResource TextFlow}}" />
                                         <TextBlock Style="{StaticResource Text.Body}" Text="&#x2192;" Foreground="{StaticResource Brush.InkTertiary}" Margin="{StaticResource Pad.S2}"
                                                    VerticalAlignment="Center" Visibility="{Binding IsCorrection, Converter={StaticResource BoolToVis}}" />
-                                        <TextBlock Style="{StaticResource Text.Body}" Text="{Binding Write}" VerticalAlignment="Center"
+                                        <TextBlock Style="{StaticResource Text.Body}" Text="{Binding Write}" VerticalAlignment="Center" FlowDirection="{Binding Write, Converter={StaticResource TextFlow}}"
                                                    Visibility="{Binding IsCorrection, Converter={StaticResource BoolToVis}}" />
                                     </StackPanel>
                                     <ContentControl Grid.Column="0" Grid.ColumnSpan="2" Content="{Binding}" ContentTemplate="{StaticResource EntryEditor}"

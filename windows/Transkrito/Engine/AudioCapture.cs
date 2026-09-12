@@ -29,9 +29,11 @@ public sealed class AudioCapture : IDisposable
 
     /// <summary>Smoothed level 0..1, raised on the capture thread.</summary>
     public event Action<double>? LevelChanged;
+    /// <summary>Each resampled 16 kHz mono chunk as it arrives, raised on the capture thread (streaming engines).</summary>
+    public event Action<float[]>? ChunkAvailable;
     public event Action<Exception>? Failed;
 
-    public bool IsCapturing => _capture is not null;
+    public bool IsCapturing => _capture is not null || _fileFeeding;
     public double Level => _meter.Level;
 
     /// <summary>Device id ("" = system default). Applied on the next Start.</summary>
@@ -61,11 +63,22 @@ public sealed class AudioCapture : IDisposable
         return e.GetDefaultAudioEndpoint(DataFlow.Capture, Role.Communications);
     }
 
+    private Thread? _fileFeeder;
+    private volatile bool _fileFeeding;
+
     public void Start()
     {
-        if (_capture is not null) return;
+        if (_capture is not null || _fileFeeding) return;
         lock (_gate) _samples.Clear();
         _meter.Reset();
+
+        // Dev aid: TRANSKRITO_TEST_WAV=<path> replays a 16 kHz mono WAV at real-time pace instead of the microphone,
+        // so the whole hotkey → engine → history path can be exercised without speaking.
+        if (Environment.GetEnvironmentVariable("TRANSKRITO_TEST_WAV") is { Length: > 0 } wav && File.Exists(wav))
+        {
+            StartFileFeed(wav);
+            return;
+        }
 
         var device = ResolveDevice(DeviceId);
         var capture = new WasapiCapture(device, useEventSync: true, audioBufferMillisecondsLength: 20);
@@ -118,13 +131,52 @@ public sealed class AudioCapture : IDisposable
         var chunk = new float[produced];
         Array.Copy(outBuf, chunk, produced);
         lock (_gate) _samples.AddRange(chunk);
+        ChunkAvailable?.Invoke(chunk);
         var level = _meter.Push(chunk, produced / (double)ParakeetEngine.SampleRate);
         LevelChanged?.Invoke(level);
+    }
+
+    private void StartFileFeed(string wav)
+    {
+        var all = ReadWav(wav);
+        _fileFeeding = true;
+        _started = DateTime.UtcNow;
+        _fileFeeder = new Thread(() =>
+        {
+            const int chunk = 320; // 20 ms
+            for (var i = 0; i < all.Length && _fileFeeding; i += chunk)
+            {
+                var n = Math.Min(chunk, all.Length - i);
+                var c = new float[n];
+                Array.Copy(all, i, c, 0, n);
+                lock (_gate) _samples.AddRange(c);
+                ChunkAvailable?.Invoke(c);
+                LevelChanged?.Invoke(_meter.Push(c, n / (double)ParakeetEngine.SampleRate));
+                Thread.Sleep(20);
+            }
+        }) { IsBackground = true, Name = "test-wav-feed" };
+        _fileFeeder.Start();
+    }
+
+    private static float[] ReadWav(string path)
+    {
+        using var reader = new WaveFileReader(path);
+        var bytes = new byte[reader.Length];
+        _ = reader.Read(bytes, 0, bytes.Length);
+        var samples = new float[bytes.Length / 2];
+        for (var i = 0; i < samples.Length; i++) samples[i] = BitConverter.ToInt16(bytes, i * 2) / 32768f;
+        return samples;
     }
 
     /// <summary>Stops and returns everything captured plus its duration in seconds.</summary>
     public (float[] Samples, double DurationSec) Stop()
     {
+        if (_fileFeeding)
+        {
+            _fileFeeding = false;
+            _fileFeeder?.Join(200);
+            _fileFeeder = null;
+        }
         var c = _capture;
         _capture = null;
         if (c is not null)

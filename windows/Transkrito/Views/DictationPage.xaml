@@ -66,9 +66,15 @@
                                                             <ColumnDefinition Width="*" />
                                                             <ColumnDefinition Width="Auto" />
                                                         </Grid.ColumnDefinitions>
-                                                        <TextBlock Grid.Column="0" Style="{StaticResource Text.Caption}" Foreground="{StaticResource Brush.InkTertiary}" Text="{Binding TimeLabel}" Margin="{StaticResource Pad.TimeOffset}" />
+                                                        <StackPanel Grid.Column="0" Margin="{StaticResource Pad.TimeOffset}">
+                                                            <TextBlock Style="{StaticResource Text.Caption}" Foreground="{StaticResource Brush.InkTertiary}" Text="{Binding TimeLabel}" />
+                                                            <TextBlock Style="{StaticResource Text.Caption}" Foreground="{StaticResource Brush.InkTertiary}" Text="{Binding LanguageLabel}"
+                                                                       Visibility="{Binding LanguageLabel, Converter={StaticResource NotEmptyToVis}}" />
+                                                        </StackPanel>
                                                         <StackPanel Grid.Column="1">
-                                                            <TextBlock Style="{StaticResource Text.Transcript}" Text="{Binding Text}" />
+                                                            <!-- Arabic-dominant rows render right-to-left; the string itself is untouched. -->
+                                                            <TextBlock Style="{StaticResource Text.Transcript}" Text="{Binding Text}"
+                                                                       FlowDirection="{Binding Text, Converter={StaticResource TextFlow}}" />
                                                             <ToggleButton x:Name="Chip" Style="{StaticResource Chip}" Content="{Binding CorrectionLabel}" HorizontalAlignment="Left" Margin="{StaticResource Pad.Below.S2}"
                                                                           Visibility="{Binding HasCorrections, Converter={StaticResource BoolToVis}}" />
                                                             <ItemsControl ItemsSource="{Binding Corrections}" Margin="{StaticResource Pad.Below.S1}"

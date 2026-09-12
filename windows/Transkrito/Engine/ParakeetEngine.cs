@@ -7,7 +7,7 @@ namespace Transkrito.Engine;
 /// Biasing: sherpa-onnx hotwords need modified_beam_search on a classic transducer; Parakeet TDT decodes greedily
 /// and ignores hotwords, so <see cref="BiasSupported"/> is false and the dictionary relies on the correction pass.
 /// </summary>
-public sealed class ParakeetEngine : IDisposable
+public sealed class ParakeetEngine : ISpeechEngine
 {
     public const int SampleRate = 16000;
 
@@ -53,6 +53,20 @@ public sealed class ParakeetEngine : IDisposable
 
     /// <summary>The bias list is accepted for API symmetry with the macOS engine; Parakeet TDT cannot use it.</summary>
     public void SetBiasTerms(IReadOnlyList<string> terms) { }
+
+    // ---- Utterance session: offline, so audio is buffered and decoded at the end. ----
+    private readonly List<float> _buffer = new();
+    public event Action<string>? PartialText;
+
+    /// <summary>Parakeet v3 picks between its European languages itself; an explicit language cannot be pinned.</summary>
+    public void BeginUtterance(string? language) { lock (_buffer) _buffer.Clear(); }
+    public void Feed(float[] samples16k) { lock (_buffer) _buffer.AddRange(samples16k); }
+    public Task<string> EndUtteranceAsync()
+    {
+        float[] all;
+        lock (_buffer) { all = _buffer.ToArray(); _buffer.Clear(); }
+        return TranscribeAsync(all);
+    }
 
     public Task<string> TranscribeAsync(float[] samples16k) => Task.Run(() =>
     {

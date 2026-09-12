@@ -24,8 +24,10 @@ public sealed class AppController : INotifyPropertyChanged, IDisposable
     public DictionaryStore Dictionary { get; }
     public HistoryStore History { get; }
     public AppSettings Settings { get; }
-    public ParakeetEngine Engine { get; } = new();
     public AudioCapture Audio { get; } = new();
+
+    /// <summary>The engine for the resolved model; swapped (and the old one released) when model or language changes.</summary>
+    public ISpeechEngine Engine { get; private set; }
 
     private RecordingState _state = RecordingState.Idle;
     private string _status = "Ready";
@@ -34,6 +36,9 @@ public sealed class AppController : INotifyPropertyChanged, IDisposable
     private ModelInfo _model;
     private string? _hotkeyError;
     private DateTime _listeningSince;
+    private string? _liveLanguage;          // confident guess from partial text while listening (Auto mode)
+    private string? _lastDetected;          // last confident detection, used as a fallback hint
+    private ModelInfo _loadedFor = null!;   // which resolved model Engine was created for
 
     public AppController()
     {
@@ -42,8 +47,12 @@ public sealed class AppController : INotifyPropertyChanged, IDisposable
         Dictionary = new DictionaryStore();
         History = new HistoryStore();
         _model = ModelCatalog.Get(Settings.Model);
+        _loadedFor = EffectiveModel;
+        Engine = _loadedFor.CreateEngine();
+        Engine.PartialText += OnPartialText;
         Audio.DeviceId = Settings.InputDevice;
         Dictionary.Changed += () => Engine.SetBiasTerms(Bias.Terms(Dictionary.Entries));
+        Audio.ChunkAvailable += chunk => { if (State == RecordingState.Listening) Engine.Feed(chunk); };
         Audio.LevelChanged += l => Application.Current?.Dispatcher.BeginInvoke(() => Level = l);
         Audio.Failed += ex => Application.Current?.Dispatcher.BeginInvoke(() => SetStatus($"Microphone error: {ex.Message}", error: true));
     }
@@ -73,11 +82,34 @@ public sealed class AppController : INotifyPropertyChanged, IDisposable
 
     // ---- Settings-facing ----
 
+    /// <summary>The user's model pick. The model that actually runs is <see cref="EffectiveModel"/>.</summary>
     public ModelInfo Model
     {
         get => _model;
-        set { _model = value; Settings.Model = value.Id; Settings.Save(); OnChanged(); _ = LoadModelAsync(); }
+        set { _model = value; Settings.Model = value.Id; Settings.Save(); OnChanged(); OnChanged(nameof(EffectiveModel)); OnChanged(nameof(ModelCompatibility)); _ = LoadModelAsync(); }
     }
+
+    /// <summary>Spoken language setting: auto | en | de | ar. Takes effect on the next recording; no restart.</summary>
+    public string Language
+    {
+        get => Settings.Language;
+        set
+        {
+            if (Settings.Language == value) return;
+            Settings.Language = value; Settings.Save();
+            OnChanged(); OnChanged(nameof(EffectiveModel)); OnChanged(nameof(ModelCompatibility)); OnChanged(nameof(LanguageHint));
+            _ = LoadModelAsync();
+        }
+    }
+    public string LanguageHint => Language == Lang.Auto
+        ? "Automatically detects English, German, or Arabic."
+        : "Always transcribe using this language.";
+
+    /// <summary>Model resolved from the pick and the language: Parakeet cannot do Arabic or Auto, so those route to Nemotron.</summary>
+    public ModelInfo EffectiveModel => ModelCatalog.Resolve(Settings.Model, Settings.Language);
+    public string ModelCompatibility => EffectiveModel.Id == Model.Id
+        ? ""
+        : $"{Model.Name} cannot transcribe {(Language == Lang.Auto ? "in Auto mode" : Lang.Display(Language))} — {EffectiveModel.Name} is used instead.";
 
     public string HotkeyLabel => Settings.Hotkey.Display();
     public string HotkeyHint => Settings.HoldToTalk ? "Hold to dictate" : "Press to start, press to stop";
@@ -105,18 +137,30 @@ public sealed class AppController : INotifyPropertyChanged, IDisposable
 
     // ---- Model ----
 
-    /// <summary>Called once at startup and whenever the model changes.</summary>
+    /// <summary>Called once at startup and whenever the model pick or the language changes.</summary>
     public async Task LoadModelAsync()
     {
-        if (!Model.IsInstalled)
+        var target = EffectiveModel;
+        if (target.Id != _loadedFor.Id)
         {
-            SetStatus("Model not downloaded — open Settings", error: true);
+            // Release the previous engine so only one model stays resident.
+            Engine.PartialText -= OnPartialText;
+            Engine.Dispose();
+            Engine = target.CreateEngine();
+            Engine.PartialText += OnPartialText;
+            _loadedFor = target;
+            OnChanged(nameof(Engine));
+        }
+        if (!target.IsInstalled)
+        {
+            SetStatus($"{target.Name} not downloaded — open Settings", error: true);
             return;
         }
+        if (Engine.IsLoaded && Engine.LoadedModel?.Id == target.Id) { SetStatus("Ready"); return; }
         SetStatus("Loading model…");
         try
         {
-            await Engine.LoadAsync(Model);
+            await Engine.LoadAsync(target);
             Engine.SetBiasTerms(Bias.Terms(Dictionary.Entries));
             SetStatus("Ready");
         }
@@ -124,6 +168,19 @@ public sealed class AppController : INotifyPropertyChanged, IDisposable
         {
             SetStatus($"Model failed to load: {ex.Message}", error: true);
         }
+    }
+
+    /// <summary>Streaming partial text → live language for the status line ("Listening · Deutsch").</summary>
+    private void OnPartialText(string partial)
+    {
+        if (Settings.Language != Lang.Auto) return;
+        var guess = LanguageDetector.Detect(partial);
+        if (!guess.IsConfident || guess.Language == _liveLanguage) return;
+        _liveLanguage = guess.Language;
+        Application.Current?.Dispatcher.BeginInvoke(() =>
+        {
+            if (State == RecordingState.Listening) SetStatus($"Listening · {Lang.Display(_liveLanguage)}");
+        });
     }
 
     // ---- Hotkey entry points ----
@@ -157,15 +214,17 @@ public sealed class AppController : INotifyPropertyChanged, IDisposable
         if (State != RecordingState.Idle) return;
         if (!Engine.IsLoaded)
         {
-            SetStatus(Model.IsInstalled ? "Model is still loading" : "Model not downloaded — open Settings", error: true);
+            SetStatus(EffectiveModel.IsInstalled ? "Model is still loading" : $"{EffectiveModel.Name} not downloaded — open Settings", error: true);
             return;
         }
         try
         {
+            _liveLanguage = null;
+            Engine.BeginUtterance(Settings.Language == Lang.Auto ? null : Settings.Language);
             Audio.Start();
             _listeningSince = DateTime.UtcNow;
             State = RecordingState.Listening;
-            SetStatus("Listening");
+            SetStatus(Settings.Language == Lang.Auto ? "Listening" : $"Listening · {Lang.Display(Settings.Language)}");
         }
         catch (Exception ex)
         {
@@ -176,25 +235,29 @@ public sealed class AppController : INotifyPropertyChanged, IDisposable
     public async Task StopAsync()
     {
         if (State != RecordingState.Listening) return;
-        var (samples, duration) = Audio.Stop();
+        var (_, duration) = Audio.Stop();
         State = RecordingState.Transcribing;
         SetStatus("Transcribing…");
         try
         {
-            var raw = await Engine.TranscribeAsync(samples);
+            var raw = await Engine.EndUtteranceAsync();
             if (string.IsNullOrWhiteSpace(raw))
             {
                 SetStatus(duration < 0.4 ? "Hold the key while you speak" : "Nothing heard");
                 return;
             }
             var (text, events) = CorrectionEngine.Apply(raw, Dictionary.Entries);
+            // Explicit mode: the language is what the user pinned. Auto: what the transcript's script/lexicon says, else unknown.
+            var language = Settings.Language == Lang.Auto ? LanguageDetector.ForHistory(raw) : Settings.Language;
+            if (language != Lang.Unknown) _lastDetected = language;
             var item = new Transcription
             {
                 Raw = raw,
                 Text = text,
                 DurationSec = Math.Round(duration, 2),
-                Engine = "parakeet",
-                Model = Model.Id,
+                Engine = EffectiveModel.Kind == EngineKind.NemotronStreaming ? "nemotron" : "parakeet",
+                Model = EffectiveModel.Id,
+                Language = language,
                 Corrections = events.Select(CorrectionRecord.From).ToList(),
             };
             History.Add(item);

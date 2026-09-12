@@ -8,6 +8,7 @@
     <d:BoolToVisibilityConverter x:Key="BoolToVisInverse" Inverse="True" />
     <d:NullToVisibilityConverter x:Key="NullToVis" />
     <d:BoolToStarConverter x:Key="BoolToStar" />
+    <d:TextFlowConverter x:Key="TextFlow" />
     <d:StringEmptyToVisibilityConverter x:Key="EmptyToVis" />
     <d:StringEmptyToVisibilityConverter x:Key="NotEmptyToVis" Inverse="True" />
 

@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 using Transkrito.Dictionary;
+using Transkrito.Engine;
 using Transkrito.Storage;
 
 namespace Transkrito.History;
@@ -38,6 +39,11 @@ public sealed class Transcription : System.ComponentModel.INotifyPropertyChanged
     [JsonPropertyName("engine")] public string Engine { get; set; } = "parakeet";
     [JsonPropertyName("model")] public string Model { get; set; } = "";
     [JsonPropertyName("corrections")] public List<CorrectionRecord> Corrections { get; set; } = new();
+
+    /// <summary>"en" | "de" | "ar" | "unknown". Absent on entries written before multilingual support; never backfilled.</summary>
+    [JsonPropertyName("language")][JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? Language { get; set; }
+    [JsonIgnore] public string LanguageLabel => Language is null or Lang.Unknown ? "" : Lang.Display(Language);
+    [JsonIgnore] public bool IsRightToLeft => LanguageDetector.IsRightToLeft(Text);
 
     [JsonIgnore] public bool HasCorrections => Corrections.Count > 0;
     [JsonIgnore] public int CorrectionCount => Corrections.Sum(c => c.Count);

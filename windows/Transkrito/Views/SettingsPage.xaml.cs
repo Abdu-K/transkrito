@@ -8,8 +8,18 @@ using Transkrito.Storage;
 
 namespace Transkrito.Views;
 
+public sealed record LanguageChoice(string Id, string Label);
+
 public partial class SettingsPage : UserControl
 {
+    private static readonly LanguageChoice[] Languages =
+    {
+        new(Lang.Auto, "Auto \u2014 Recommended"),
+        new(Lang.En, Lang.Display(Lang.En)),
+        new(Lang.De, Lang.Display(Lang.De)),
+        new(Lang.Ar, Lang.Display(Lang.Ar)),
+    };
+
     private AppController? _app;
     private CancellationTokenSource? _download;
     private bool _loading = true;
@@ -31,6 +41,8 @@ public partial class SettingsPage : UserControl
         ModeToggle.IsChecked = !app.HoldToTalk;
         UpdateModeHint();
         FillDevices();
+        LanguageBox.ItemsSource = Languages;
+        LanguageBox.SelectedItem = Languages.First(l => l.Id == app.Language);
         ModelBox.ItemsSource = ModelCatalog.All;
         ModelBox.SelectedItem = app.Model;
         InsertBox.IsChecked = app.Settings.InsertAtCursor;
@@ -110,8 +122,17 @@ public partial class SettingsPage : UserControl
         _app.InputDeviceId = d.Id;
     }
 
+    // ---- Language ----
+    private void OnLanguageChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading || _app is null || LanguageBox.SelectedItem is not LanguageChoice c) return;
+        _app.Language = c.Id;
+        RefreshModelStatus();
+    }
+
     // ---- Model ----
-    private ModelInfo Selected => (ModelInfo?)ModelBox.SelectedItem ?? ModelCatalog.All[0];
+    /// <summary>Status rows describe the model that will actually run for the current language.</summary>
+    private ModelInfo Selected => _app?.EffectiveModel ?? ModelCatalog.Default;
 
     private void OnModelChanged(object sender, SelectionChangedEventArgs e)
     {
@@ -125,7 +146,7 @@ public partial class SettingsPage : UserControl
         if (_app is null) return;
         var m = Selected;
         var installed = m.IsInstalled;
-        ModelStatus.Text = installed ? "Downloaded · on this PC" : "Not downloaded (about 470 MB)";
+        ModelStatus.Text = installed ? $"{m.Name} downloaded · on this PC" : $"{m.Name} not downloaded (about {m.ApproxMb} MB)";
         DownloadButton.Visibility = installed || _download is not null ? Visibility.Collapsed : Visibility.Visible;
         RemoveButton.Visibility = installed && _download is null ? Visibility.Visible : Visibility.Collapsed;
         CancelButton.Visibility = _download is not null ? Visibility.Visible : Visibility.Collapsed;
@@ -149,7 +170,7 @@ public partial class SettingsPage : UserControl
         try
         {
             await ModelManager.DownloadAsync(m, progress, _download.Token);
-            if (_app.Model.Id == m.Id) await _app.LoadModelAsync();
+            if (_app.EffectiveModel.Id == m.Id) await _app.LoadModelAsync();
         }
         catch (OperationCanceledException) { ModelStatus.Text = "Cancelled"; }
         catch (Exception ex) { ModelStatus.Text = $"Download failed: {ex.Message}"; }
@@ -167,10 +188,10 @@ public partial class SettingsPage : UserControl
     {
         if (_app is null) return;
         var m = Selected;
-        if (_app.Model.Id == m.Id) _app.Engine.Dispose();
+        if (_app.EffectiveModel.Id == m.Id) _app.Engine.Dispose();
         try { ModelManager.Delete(m); } catch (Exception ex) { ModelStatus.Text = ex.Message; }
         RefreshModelStatus();
-        if (_app.Model.Id == m.Id) _app.SetStatus("Model not downloaded — open Settings", error: true);
+        if (_app.EffectiveModel.Id == m.Id) _app.SetStatus($"{m.Name} not downloaded — open Settings", error: true);
     }
 
     // ---- Insert ----

@@ -48,17 +48,23 @@ public static class CorrectionEngine
     /// <summary>Lowercase, separators removed — used for duplicate/common checks.</summary>
     public static string Normalize(string hear) => string.Concat(Parts(hear)).ToLowerInvariant();
 
+    public const string WordChar = @"[\p{L}\p{M}\p{N}_]";
+    public const string WordStart = "(?<!" + WordChar + ")";
+    public const string WordEnd = "(?!" + WordChar + ")";
+
     public static Regex? BuildPattern(string hear)
     {
         var parts = Parts(hear);
         if (parts.Length == 0) return null;
-        var sb = new StringBuilder(@"\b");
+        // Explicit Unicode word boundaries instead of \b: letters, marks (Arabic harakat), digits and _ are word
+        // characters on both .NET and ICU, so Arabic, German umlauts/ß and Latin behave the same on both platforms.
+        var sb = new StringBuilder(WordStart);
         for (var i = 0; i < parts.Length; i++)
         {
             if (i > 0) sb.Append(@"[\s\-]*");
             sb.Append(Regex.Escape(parts[i]));
         }
-        sb.Append(@"\b");
+        sb.Append(WordEnd);
         return new Regex(sb.ToString(), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
     }
 

@@ -32,6 +32,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <!-- Hotkey -->
@@ -57,19 +58,34 @@
                     <TextBlock Style="{StaticResource Text.Caption}" Margin="{StaticResource Pad.Below.S1}" Text="Any input works; audio is converted to 16 kHz mono for the model." />
                 </StackPanel>
 
-                <!-- Model -->
-                <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource Label}" Text="Model" Margin="{StaticResource Pad.LabelNext}" />
+                <!-- Language (what is spoken; the UI stays English) -->
+                <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource Label}" Text="Language" Margin="{StaticResource Pad.LabelNext}" />
                 <StackPanel Grid.Row="2" Grid.Column="1" Style="{StaticResource Section}">
+                    <ComboBox x:Name="LanguageBox" Style="{StaticResource Combo}" SelectionChanged="OnLanguageChanged">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Style="{StaticResource Text.Body}" Text="{Binding Label}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <TextBlock Style="{StaticResource Text.Caption}" Margin="{StaticResource Pad.Below.S1}" Text="{Binding LanguageHint}" />
+                </StackPanel>
+
+                <!-- Model -->
+                <TextBlock Grid.Row="3" Grid.Column="0" Style="{StaticResource Label}" Text="Model" Margin="{StaticResource Pad.LabelNext}" />
+                <StackPanel Grid.Row="3" Grid.Column="1" Style="{StaticResource Section}">
                     <ComboBox x:Name="ModelBox" Style="{StaticResource Combo}" SelectionChanged="OnModelChanged">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Style="{StaticResource Text.Body}" Text="{Binding Name}" />
-                                    <TextBlock Style="{StaticResource Text.Caption}" Text="{Binding Language}" Margin="{StaticResource Pad.Gap.S2}" VerticalAlignment="Center" />
+                                    <TextBlock Style="{StaticResource Text.Caption}" Text="{Binding LanguageSummary}" Margin="{StaticResource Pad.Gap.S2}" VerticalAlignment="Center" />
                                 </StackPanel>
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
+                    <TextBlock Style="{StaticResource Text.Caption}" Foreground="{StaticResource Brush.StateWarning}" Margin="{StaticResource Pad.Below.S1}"
+                               Text="{Binding ModelCompatibility}" Visibility="{Binding ModelCompatibility, Converter={StaticResource NotEmptyToVis}}" />
                     <StackPanel Orientation="Horizontal" Margin="{StaticResource Pad.Below.S2}">
                         <TextBlock x:Name="ModelStatus" Style="{StaticResource Text.Caption}" VerticalAlignment="Center" />
                         <Button x:Name="DownloadButton" Style="{StaticResource Button.Glass}" Click="OnDownload" Margin="{StaticResource Pad.Gap.S3}">
@@ -89,15 +105,15 @@
                 </StackPanel>
 
                 <!-- Insert -->
-                <TextBlock Grid.Row="3" Grid.Column="0" Style="{StaticResource Label}" Text="After transcribing" Margin="{StaticResource Pad.LabelNext}" />
-                <StackPanel Grid.Row="3" Grid.Column="1" Style="{StaticResource Section}">
+                <TextBlock Grid.Row="4" Grid.Column="0" Style="{StaticResource Label}" Text="After transcribing" Margin="{StaticResource Pad.LabelNext}" />
+                <StackPanel Grid.Row="4" Grid.Column="1" Style="{StaticResource Section}">
                     <CheckBox x:Name="InsertBox" Style="{StaticResource Check}" Content="Insert at the cursor in the app I was using" Checked="OnInsertChanged" Unchecked="OnInsertChanged" />
                     <TextBlock Style="{StaticResource Text.Caption}" Margin="{StaticResource Pad.Below.S1}" Text="Text is always copied to the clipboard as well." />
                 </StackPanel>
 
                 <!-- Files -->
-                <TextBlock Grid.Row="4" Grid.Column="0" Style="{StaticResource Label}" Text="Files" Margin="{StaticResource Pad.LabelNext}" />
-                <StackPanel Grid.Row="4" Grid.Column="1" Style="{StaticResource Section}">
+                <TextBlock Grid.Row="5" Grid.Column="0" Style="{StaticResource Label}" Text="Files" Margin="{StaticResource Pad.LabelNext}" />
+                <StackPanel Grid.Row="5" Grid.Column="1" Style="{StaticResource Section}">
                     <TextBlock Style="{StaticResource Text.Caption}" Text="Dictionary, history and settings are plain JSON you can edit by hand. The app picks up changes immediately." />
                     <StackPanel Orientation="Horizontal" Margin="{StaticResource Pad.Below.S2}">
                         <Button Style="{StaticResource Button.Glass}" Click="OnOpenFolder">

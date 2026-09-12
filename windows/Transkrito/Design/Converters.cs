@@ -40,6 +40,14 @@ public sealed class StringEmptyToVisibilityConverter : IValueConverter
     public object ConvertBack(object value, Type t, object p, CultureInfo c) => throw new NotSupportedException();
 }
 
+/// <summary>Text → FlowDirection from its dominant script. Rendering only; never reorders the string.</summary>
+public sealed class TextFlowConverter : IValueConverter
+{
+    public object Convert(object value, Type t, object p, CultureInfo c) =>
+        Transkrito.Engine.LanguageDetector.IsRightToLeft(value as string) ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
+    public object ConvertBack(object value, Type t, object p, CultureInfo c) => throw new NotSupportedException();
+}
+
 /// <summary>true → 1*, false → 0: collapses a grid column together with its content.</summary>
 public sealed class BoolToStarConverter : IValueConverter
 {
@@ -61,4 +69,29 @@ public static class FieldHelper
         "Icon", typeof(System.Windows.Media.Geometry), typeof(FieldHelper), new PropertyMetadata(null));
     public static System.Windows.Media.Geometry? GetIcon(DependencyObject d) => (System.Windows.Media.Geometry?)d.GetValue(IconProperty);
     public static void SetIcon(DependencyObject d, System.Windows.Media.Geometry? v) => d.SetValue(IconProperty, v);
+
+    /// <summary>When true, a TextBox switches its FlowDirection to match the script being typed (Arabic → RTL).</summary>
+    public static readonly DependencyProperty AutoDirectionProperty = DependencyProperty.RegisterAttached(
+        "AutoDirection", typeof(bool), typeof(FieldHelper), new PropertyMetadata(false, OnAutoDirectionChanged));
+    public static bool GetAutoDirection(DependencyObject d) => (bool)d.GetValue(AutoDirectionProperty);
+    public static void SetAutoDirection(DependencyObject d, bool v) => d.SetValue(AutoDirectionProperty, v);
+
+    private static void OnAutoDirectionChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not System.Windows.Controls.TextBox box) return;
+        if ((bool)e.NewValue)
+        {
+            box.TextChanged += ApplyDirection;
+            ApplyDirection(box, null);
+        }
+        else box.TextChanged -= ApplyDirection;
+    }
+
+    private static void ApplyDirection(object sender, System.Windows.Controls.TextChangedEventArgs? e)
+    {
+        if (sender is not System.Windows.Controls.TextBox box) return;
+        var rtl = Transkrito.Engine.LanguageDetector.IsRightToLeft(box.Text);
+        var dir = rtl ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
+        if (box.FlowDirection != dir) box.FlowDirection = dir;
+    }
 }

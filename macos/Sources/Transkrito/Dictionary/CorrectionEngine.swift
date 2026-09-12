@@ -66,8 +66,11 @@ enum CorrectionEngine {
     static func buildPattern(_ hear: String) -> NSRegularExpression? {
         let p = parts(hear)
         if p.isEmpty { return nil }
+        // Explicit Unicode word boundaries instead of \b (same classes as the Windows port): letters, marks
+        // (Arabic harakat), digits and _ are word characters, so Arabic and umlauts behave identically on both.
+        let wordChar = #"[\p{L}\p{M}\p{N}_]"#
         let body = p.map { NSRegularExpression.escapedPattern(for: $0) }.joined(separator: #"[\s\-]*"#)
-        return try? NSRegularExpression(pattern: #"\b"# + body + #"\b"#, options: [.caseInsensitive])
+        return try? NSRegularExpression(pattern: "(?<!" + wordChar + ")" + body + "(?!" + wordChar + ")", options: [.caseInsensitive])
     }
 
     private static func buildRules(_ entries: [DictionaryEntry]) -> [Rule] {

@@ -11,7 +11,7 @@ namespace Transkrito.Tests;
 /// </summary>
 public class ParakeetEngineTests
 {
-    private static readonly ModelInfo Model = ModelCatalog.All[0];
+    private static readonly ModelInfo Model = ModelCatalog.Get("parakeet-tdt-0.6b-v3");
 
     [SkippableFact]
     public async Task Transcribes_tts_sentence_and_applies_dictionary()
@@ -19,8 +19,8 @@ public class ParakeetEngineTests
         Skip.IfNot(Model.IsInstalled, "Parakeet model not downloaded");
 
         var wav = Path.Combine(Path.GetTempPath(), "transkrito-tts.wav");
-        RenderTts("I use cloud code from anthropic every day.", wav);
-        var samples = ReadWav16kMono(wav);
+        WavFile.RenderTts("I use cloud code from anthropic every day.", wav);
+        var samples = WavFile.Read16kMono(wav);
         Assert.True(samples.Length > 16000, "TTS produced too little audio");
 
         using var engine = new ParakeetEngine();
@@ -43,32 +43,4 @@ public class ParakeetEngineTests
         Console.WriteLine($"raw: {raw}\ncorrected: {text}\ndecode: {sw.ElapsedMilliseconds} ms for {samples.Length / 16000.0:F1}s audio");
     }
 
-    private static void RenderTts(string sentence, string path)
-    {
-        // System.Speech is Windows-only and ships with the desktop runtime; render at 16 kHz mono 16-bit.
-        var script = $@"
-Add-Type -AssemblyName System.Speech
-$s = New-Object System.Speech.Synthesis.SpeechSynthesizer
-$fmt = New-Object System.Speech.AudioFormat.SpeechAudioFormatInfo(16000, [System.Speech.AudioFormat.AudioBitsPerSample]::Sixteen, [System.Speech.AudioFormat.AudioChannel]::Mono)
-$s.SetOutputToWaveFile('{path.Replace("'", "''")}', $fmt)
-$s.Speak('{sentence.Replace("'", "''")}')
-$s.Dispose()";
-        var psi = new ProcessStartInfo("powershell", $"-NoProfile -NonInteractive -Command \"{script.Replace("\"", "\\\"")}\"")
-        { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false, CreateNoWindow = true };
-        using var p = Process.Start(psi)!;
-        p.WaitForExit(60_000);
-        Assert.True(File.Exists(path), "TTS wav not written: " + p.StandardError.ReadToEnd());
-    }
-
-    private static float[] ReadWav16kMono(string path)
-    {
-        using var reader = new NAudio.Wave.WaveFileReader(path);
-        Assert.Equal(16000, reader.WaveFormat.SampleRate);
-        Assert.Equal(1, reader.WaveFormat.Channels);
-        var bytes = new byte[reader.Length];
-        _ = reader.Read(bytes, 0, bytes.Length);
-        var samples = new float[bytes.Length / 2];
-        for (var i = 0; i < samples.Length; i++) samples[i] = BitConverter.ToInt16(bytes, i * 2) / 32768f;
-        return samples;
-    }
 }

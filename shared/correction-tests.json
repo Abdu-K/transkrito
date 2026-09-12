@@ -4,63 +4,163 @@
   "cases": [
     {
       "name": "spaced correction",
-      "entries": [ { "type": "correction", "hear": "cloud code", "write": "Claude Code" } ],
+      "entries": [
+        {
+          "type": "correction",
+          "hear": "cloud code",
+          "write": "Claude Code"
+        }
+      ],
       "input": "I use cloud code daily.",
       "expected": "I use Claude Code daily.",
-      "events": [ { "hear": "cloud code", "write": "Claude Code", "matched": "cloud code", "count": 1 } ]
+      "events": [
+        {
+          "hear": "cloud code",
+          "write": "Claude Code",
+          "matched": "cloud code",
+          "count": 1
+        }
+      ]
     },
     {
       "name": "glued form",
-      "entries": [ { "type": "correction", "hear": "cloud code", "write": "Claude Code" } ],
+      "entries": [
+        {
+          "type": "correction",
+          "hear": "cloud code",
+          "write": "Claude Code"
+        }
+      ],
       "input": "CloudCode is great",
       "expected": "Claude Code is great",
-      "events": [ { "hear": "cloud code", "write": "Claude Code", "matched": "CloudCode", "count": 1 } ]
+      "events": [
+        {
+          "hear": "cloud code",
+          "write": "Claude Code",
+          "matched": "CloudCode",
+          "count": 1
+        }
+      ]
     },
     {
       "name": "hyphen form",
-      "entries": [ { "type": "correction", "hear": "cloud code", "write": "Claude Code" } ],
+      "entries": [
+        {
+          "type": "correction",
+          "hear": "cloud code",
+          "write": "Claude Code"
+        }
+      ],
       "input": "open Cloud-Code now",
       "expected": "open Claude Code now",
-      "events": [ { "hear": "cloud code", "write": "Claude Code", "matched": "Cloud-Code", "count": 1 } ]
+      "events": [
+        {
+          "hear": "cloud code",
+          "write": "Claude Code",
+          "matched": "Cloud-Code",
+          "count": 1
+        }
+      ]
     },
     {
       "name": "multiple spaces between parts",
-      "entries": [ { "type": "correction", "hear": "cloud code", "write": "Claude Code" } ],
+      "entries": [
+        {
+          "type": "correction",
+          "hear": "cloud code",
+          "write": "Claude Code"
+        }
+      ],
       "input": "cloud   code",
       "expected": "Claude Code",
-      "events": [ { "hear": "cloud code", "write": "Claude Code", "matched": "cloud   code", "count": 1 } ]
+      "events": [
+        {
+          "hear": "cloud code",
+          "write": "Claude Code",
+          "matched": "cloud   code",
+          "count": 1
+        }
+      ]
     },
     {
       "name": "does not touch cloudflare or bare cloud",
-      "entries": [ { "type": "correction", "hear": "cloud code", "write": "Claude Code" } ],
+      "entries": [
+        {
+          "type": "correction",
+          "hear": "cloud code",
+          "write": "Claude Code"
+        }
+      ],
       "input": "Cloudflare runs in the cloud, not cloud coded.",
       "expected": "Cloudflare runs in the cloud, not cloud coded.",
       "events": []
     },
     {
       "name": "punctuation adjacency",
-      "entries": [ { "type": "correction", "hear": "cloud code", "write": "Claude Code" } ],
+      "entries": [
+        {
+          "type": "correction",
+          "hear": "cloud code",
+          "write": "Claude Code"
+        }
+      ],
       "input": "Try cloud code. (cloud code!) \"CloudCode\"",
       "expected": "Try Claude Code. (Claude Code!) \"Claude Code\"",
-      "events": [ { "hear": "cloud code", "write": "Claude Code", "matched": "cloud code", "count": 3 } ]
+      "events": [
+        {
+          "hear": "cloud code",
+          "write": "Claude Code",
+          "matched": "cloud code",
+          "count": 3
+        }
+      ]
     },
     {
       "name": "term fixes casing",
-      "entries": [ { "type": "term", "text": "Anthropic" } ],
+      "entries": [
+        {
+          "type": "term",
+          "text": "Anthropic"
+        }
+      ],
       "input": "anthropic and ANTHROPIC and Anthropic",
       "expected": "Anthropic and Anthropic and Anthropic",
-      "events": [ { "hear": "Anthropic", "write": "Anthropic", "matched": "anthropic", "count": 2 } ]
+      "events": [
+        {
+          "hear": "Anthropic",
+          "write": "Anthropic",
+          "matched": "anthropic",
+          "count": 2
+        }
+      ]
     },
     {
       "name": "term with two parts handles glued and hyphen",
-      "entries": [ { "type": "term", "text": "Claude Code" } ],
+      "entries": [
+        {
+          "type": "term",
+          "text": "Claude Code"
+        }
+      ],
       "input": "claude-code and claudecode and Claude Code",
       "expected": "Claude Code and Claude Code and Claude Code",
-      "events": [ { "hear": "Claude Code", "write": "Claude Code", "matched": "claude-code", "count": 2 } ]
+      "events": [
+        {
+          "hear": "Claude Code",
+          "write": "Claude Code",
+          "matched": "claude-code",
+          "count": 2
+        }
+      ]
     },
     {
       "name": "term does not match prefix or suffix",
-      "entries": [ { "type": "term", "text": "Vercel" } ],
+      "entries": [
+        {
+          "type": "term",
+          "text": "Vercel"
+        }
+      ],
       "input": "vercelish and unvercel stay",
       "expected": "vercelish and unvercel stay",
       "events": []
@@ -68,87 +168,499 @@
     {
       "name": "longest match first",
       "entries": [
-        { "type": "correction", "hear": "cloud", "write": "Claude" },
-        { "type": "correction", "hear": "cloud code", "write": "Claude Code" }
+        {
+          "type": "correction",
+          "hear": "cloud",
+          "write": "Claude"
+        },
+        {
+          "type": "correction",
+          "hear": "cloud code",
+          "write": "Claude Code"
+        }
       ],
       "input": "cloud code and cloud",
       "expected": "Claude Code and Claude",
       "events": [
-        { "hear": "cloud code", "write": "Claude Code", "matched": "cloud code", "count": 1 },
-        { "hear": "cloud", "write": "Claude", "matched": "cloud", "count": 1 }
+        {
+          "hear": "cloud code",
+          "write": "Claude Code",
+          "matched": "cloud code",
+          "count": 1
+        },
+        {
+          "hear": "cloud",
+          "write": "Claude",
+          "matched": "cloud",
+          "count": 1
+        }
       ]
     },
     {
       "name": "shorter rule does not re-hit longer rule output",
       "entries": [
-        { "type": "correction", "hear": "super base", "write": "Supabase" },
-        { "type": "correction", "hear": "base", "write": "Base" }
+        {
+          "type": "correction",
+          "hear": "super base",
+          "write": "Supabase"
+        },
+        {
+          "type": "correction",
+          "hear": "base",
+          "write": "Base"
+        }
       ],
       "input": "super base is a base",
       "expected": "Supabase is a Base",
       "events": [
-        { "hear": "super base", "write": "Supabase", "matched": "super base", "count": 1 },
-        { "hear": "base", "write": "Base", "matched": "base", "count": 1 }
+        {
+          "hear": "super base",
+          "write": "Supabase",
+          "matched": "super base",
+          "count": 1
+        },
+        {
+          "hear": "base",
+          "write": "Base",
+          "matched": "base",
+          "count": 1
+        }
       ]
     },
     {
       "name": "unicode letters and boundaries",
-      "entries": [ { "type": "correction", "hear": "zürich", "write": "Zürich" } ],
+      "entries": [
+        {
+          "type": "correction",
+          "hear": "zürich",
+          "write": "Zürich"
+        }
+      ],
       "input": "in zürich, ZÜRICH and zürichsee",
       "expected": "in Zürich, Zürich and zürichsee",
-      "events": [ { "hear": "zürich", "write": "Zürich", "matched": "zürich", "count": 2 } ]
+      "events": [
+        {
+          "hear": "zürich",
+          "write": "Zürich",
+          "matched": "zürich",
+          "count": 2
+        }
+      ]
     },
     {
       "name": "regex metacharacters in hear are literal",
-      "entries": [ { "type": "correction", "hear": "c++ dev", "write": "C++ developer" } ],
+      "entries": [
+        {
+          "type": "correction",
+          "hear": "c++ dev",
+          "write": "C++ developer"
+        }
+      ],
       "input": "a c++ dev here",
       "expected": "a C++ developer here",
-      "events": [ { "hear": "c++ dev", "write": "C++ developer", "matched": "c++ dev", "count": 1 } ]
+      "events": [
+        {
+          "hear": "c++ dev",
+          "write": "C++ developer",
+          "matched": "c++ dev",
+          "count": 1
+        }
+      ]
     },
     {
       "name": "noop rule skipped",
-      "entries": [ { "type": "correction", "hear": "Claude", "write": "Claude" } ],
+      "entries": [
+        {
+          "type": "correction",
+          "hear": "Claude",
+          "write": "Claude"
+        }
+      ],
       "input": "Claude and claude",
       "expected": "Claude and claude",
       "events": []
     },
     {
       "name": "empty text",
-      "entries": [ { "type": "correction", "hear": "cloud code", "write": "Claude Code" } ],
+      "entries": [
+        {
+          "type": "correction",
+          "hear": "cloud code",
+          "write": "Claude Code"
+        }
+      ],
       "input": "",
       "expected": "",
       "events": []
     },
     {
       "name": "three-part phrase glued partially",
-      "entries": [ { "type": "correction", "hear": "open a i", "write": "OpenAI" } ],
+      "entries": [
+        {
+          "type": "correction",
+          "hear": "open a i",
+          "write": "OpenAI"
+        }
+      ],
       "input": "openai and open-a-i and open a i and openair",
       "expected": "OpenAI and OpenAI and OpenAI and openair",
-      "events": [ { "hear": "open a i", "write": "OpenAI", "matched": "openai", "count": 3 } ]
+      "events": [
+        {
+          "hear": "open a i",
+          "write": "OpenAI",
+          "matched": "openai",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "name": "german umlaut correction",
+      "entries": [
+        {
+          "type": "correction",
+          "hear": "tubingen",
+          "write": "Tübingen"
+        }
+      ],
+      "input": "Ich fahre morgen nach tubingen.",
+      "expected": "Ich fahre morgen nach Tübingen.",
+      "events": [
+        {
+          "hear": "tubingen",
+          "write": "Tübingen",
+          "matched": "tubingen",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "german term with umlaut and sharp s keeps casing",
+      "entries": [
+        {
+          "type": "term",
+          "text": "Straßenbahn"
+        },
+        {
+          "type": "term",
+          "text": "Tübingen"
+        }
+      ],
+      "input": "die straßenbahn in tübingen und die STRASSENBAHN",
+      "expected": "die Straßenbahn in Tübingen und die STRASSENBAHN",
+      "events": [
+        {
+          "hear": "Straßenbahn",
+          "write": "Straßenbahn",
+          "matched": "straßenbahn",
+          "count": 1
+        },
+        {
+          "hear": "Tübingen",
+          "write": "Tübingen",
+          "matched": "tübingen",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "arabic correction pair",
+      "entries": [
+        {
+          "type": "correction",
+          "hear": "الذكاء الصناعي",
+          "write": "الذكاء الاصطناعي"
+        }
+      ],
+      "input": "أنا أستخدم الذكاء الصناعي كل يوم.",
+      "expected": "أنا أستخدم الذكاء الاصطناعي كل يوم.",
+      "events": [
+        {
+          "hear": "الذكاء الصناعي",
+          "write": "الذكاء الاصطناعي",
+          "matched": "الذكاء الصناعي",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "arabic name term does not match inside a longer word",
+      "entries": [
+        {
+          "type": "correction",
+          "hear": "محمد نور",
+          "write": "محمّد نور"
+        }
+      ],
+      "input": "قال محمد نور إن أحمد نورس هنا",
+      "expected": "قال محمّد نور إن أحمد نورس هنا",
+      "events": [
+        {
+          "hear": "محمد نور",
+          "write": "محمّد نور",
+          "matched": "محمد نور",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "arabic hamza forms are distinct letters, not stripped",
+      "entries": [
+        {
+          "type": "correction",
+          "hear": "أحمد",
+          "write": "أَحْمَد"
+        }
+      ],
+      "input": "أحمد و احمد و إحمد",
+      "expected": "أَحْمَد و احمد و إحمد",
+      "events": [
+        {
+          "hear": "أحمد",
+          "write": "أَحْمَد",
+          "matched": "أحمد",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "mixed arabic and latin names",
+      "entries": [
+        {
+          "type": "correction",
+          "hear": "cloud code",
+          "write": "Claude Code"
+        }
+      ],
+      "input": "أنا أستخدم cloud code للعمل.",
+      "expected": "أنا أستخدم Claude Code للعمل.",
+      "events": [
+        {
+          "hear": "cloud code",
+          "write": "Claude Code",
+          "matched": "cloud code",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "taa marbuta and alef maqsura endings are boundaries",
+      "entries": [
+        {
+          "type": "term",
+          "text": "الجامعة"
+        }
+      ],
+      "input": "الجامعة و الجامعة",
+      "expected": "الجامعة و الجامعة",
+      "events": []
     }
   ],
   "warnings": [
-    { "name": "common single word", "hear": "cloud", "others": [], "expect": ["common"] },
-    { "name": "short word", "hear": "ai", "others": [], "expect": ["common"] },
-    { "name": "common word glued", "hear": "some thing", "others": [], "expect": ["common"] },
-    { "name": "product name is fine", "hear": "super base", "others": [], "expect": [] },
-    { "name": "noop", "hear": "Claude", "write": "Claude", "others": [], "expect": ["noop"] },
-    { "name": "duplicate", "hear": "Cloud-Code", "others": [ { "type": "correction", "hear": "cloud code", "write": "Claude Code" } ], "expect": ["duplicate"] },
-    { "name": "shadowed by longer", "hear": "code", "others": [ { "type": "correction", "hear": "cloud code", "write": "Claude Code" } ], "expect": ["common", "shadowed"] },
-    { "name": "shadows shorter", "hear": "vercel edge functions", "others": [ { "type": "term", "text": "Vercel" } ], "expect": ["shadowed"] }
+    {
+      "name": "common single word",
+      "hear": "cloud",
+      "others": [],
+      "expect": [
+        "common"
+      ]
+    },
+    {
+      "name": "short word",
+      "hear": "ai",
+      "others": [],
+      "expect": [
+        "common"
+      ]
+    },
+    {
+      "name": "common word glued",
+      "hear": "some thing",
+      "others": [],
+      "expect": [
+        "common"
+      ]
+    },
+    {
+      "name": "product name is fine",
+      "hear": "super base",
+      "others": [],
+      "expect": []
+    },
+    {
+      "name": "noop",
+      "hear": "Claude",
+      "write": "Claude",
+      "others": [],
+      "expect": [
+        "noop"
+      ]
+    },
+    {
+      "name": "duplicate",
+      "hear": "Cloud-Code",
+      "others": [
+        {
+          "type": "correction",
+          "hear": "cloud code",
+          "write": "Claude Code"
+        }
+      ],
+      "expect": [
+        "duplicate"
+      ]
+    },
+    {
+      "name": "shadowed by longer",
+      "hear": "code",
+      "others": [
+        {
+          "type": "correction",
+          "hear": "cloud code",
+          "write": "Claude Code"
+        }
+      ],
+      "expect": [
+        "common",
+        "shadowed"
+      ]
+    },
+    {
+      "name": "shadows shorter",
+      "hear": "vercel edge functions",
+      "others": [
+        {
+          "type": "term",
+          "text": "Vercel"
+        }
+      ],
+      "expect": [
+        "shadowed"
+      ]
+    }
   ],
   "bias": [
     {
       "name": "terms plus writes, dedup, newest first, capped",
       "maxTerms": 3,
       "entries": [
-        { "type": "term", "text": "Anthropic", "created": "2026-01-01T00:00:00Z" },
-        { "type": "correction", "hear": "cloud code", "write": "Claude Code", "created": "2026-01-02T00:00:00Z" },
-        { "type": "term", "text": "anthropic", "created": "2026-01-03T00:00:00Z" },
-        { "type": "term", "text": "Vercel", "created": "2026-01-04T00:00:00Z" },
-        { "type": "term", "text": "Supabase", "created": "2026-01-05T00:00:00Z" }
+        {
+          "type": "term",
+          "text": "Anthropic",
+          "created": "2026-01-01T00:00:00Z"
+        },
+        {
+          "type": "correction",
+          "hear": "cloud code",
+          "write": "Claude Code",
+          "created": "2026-01-02T00:00:00Z"
+        },
+        {
+          "type": "term",
+          "text": "anthropic",
+          "created": "2026-01-03T00:00:00Z"
+        },
+        {
+          "type": "term",
+          "text": "Vercel",
+          "created": "2026-01-04T00:00:00Z"
+        },
+        {
+          "type": "term",
+          "text": "Supabase",
+          "created": "2026-01-05T00:00:00Z"
+        }
       ],
-      "expect": ["Supabase", "Vercel", "anthropic"]
+      "expect": [
+        "Supabase",
+        "Vercel",
+        "anthropic"
+      ]
     }
-  ]
+  ],
+  "language": {
+    "note": "Text-based spoken-language classifier used for history metadata and live status. Candidates: en, de, ar; else unknown.",
+    "cases": [
+      {
+        "text": "Please open Claude Code.",
+        "expect": "en"
+      },
+      {
+        "text": "I need to update the project.",
+        "expect": "en"
+      },
+      {
+        "text": "Ich fahre morgen nach Tübingen.",
+        "expect": "de"
+      },
+      {
+        "text": "Ich muss morgen zur Schule.",
+        "expect": "de"
+      },
+      {
+        "text": "أنا أستخدم الذكاء الاصطناعي.",
+        "expect": "ar"
+      },
+      {
+        "text": "بدي أروح بكرا على الجامعة.",
+        "expect": "ar"
+      },
+      {
+        "text": "أنا أستخدم Claude Code للعمل.",
+        "expect": "ar"
+      },
+      {
+        "text": "Das Projekt uses Claude Code.",
+        "expect": "de"
+      },
+      {
+        "text": "Claude Code",
+        "expect": "unknown"
+      },
+      {
+        "text": "",
+        "expect": "unknown"
+      },
+      {
+        "text": "12345",
+        "expect": "unknown"
+      },
+      {
+        "text": "Wir haben es da getroffen und besprochen: so was mir wichtig ist.",
+        "expect": "de"
+      },
+      {
+        "text": "The app works just fine.",
+        "expect": "en"
+      }
+    ]
+  },
+  "rtl": {
+    "note": "Dominant-direction check for rendering only; never alters the string.",
+    "cases": [
+      {
+        "text": "أنا أستخدم الذكاء الاصطناعي.",
+        "rtl": true
+      },
+      {
+        "text": "أنا أستخدم Claude Code للعمل.",
+        "rtl": true
+      },
+      {
+        "text": "Please open Claude Code.",
+        "rtl": false
+      },
+      {
+        "text": "Ich fahre morgen nach Tübingen.",
+        "rtl": false
+      },
+      {
+        "text": "",
+        "rtl": false
+      },
+      {
+        "text": "Claude Code في العمل",
+        "rtl": true
+      }
+    ]
+  }
 }
