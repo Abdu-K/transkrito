@@ -73,8 +73,27 @@ struct AppSettings: Codable, Equatable {
     var hotkeyMode: String = "hold"
     /// Core Audio device UID; empty = system default input.
     var inputDevice: String = ""
+    /// Spoken language: "auto" (default), "en", "de", "ar". Files written before this field existed decode as auto.
+    var language: String = Lang.auto
 
     var holdToTalk: Bool { hotkeyMode != "toggle" }
+
+    enum CodingKeys: String, CodingKey { case version, hotkey, model, insertAtCursor, hotkeyMode, inputDevice, language }
+
+    init() {}
+
+    /// Missing keys keep their defaults, so old settings.json files migrate without being rewritten.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        version = try c.decodeIfPresent(Int.self, forKey: .version) ?? 1
+        hotkey = try c.decodeIfPresent(HotkeySetting.self, forKey: .hotkey) ?? HotkeySetting()
+        model = try c.decodeIfPresent(String.self, forKey: .model) ?? model
+        insertAtCursor = try c.decodeIfPresent(Bool.self, forKey: .insertAtCursor) ?? true
+        hotkeyMode = try c.decodeIfPresent(String.self, forKey: .hotkeyMode) ?? "hold"
+        inputDevice = try c.decodeIfPresent(String.self, forKey: .inputDevice) ?? ""
+        let lang = try c.decodeIfPresent(String.self, forKey: .language) ?? Lang.auto
+        language = (lang == Lang.auto || Lang.isSupported(lang)) ? lang : Lang.auto
+    }
 
     static func load() -> AppSettings {
         ((try? JsonFile.read(AppSettings.self, from: AppPaths.settings)) ?? nil) ?? AppSettings()

@@ -20,6 +20,8 @@ final class AudioCapture {
 
     /// Core Audio device UID; "" = system default. Applied on the next start.
     var deviceUID = ""
+    /// Smoothed level as of the last buffer (read on the audio thread by the controller's preroll logic).
+    var currentLevel: Double { meter.level }
 
     /// Smoothed level 0..1, called on the audio thread.
     var onLevel: ((Double) -> Void)?

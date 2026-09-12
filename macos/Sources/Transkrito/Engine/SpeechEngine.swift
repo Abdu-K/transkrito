@@ -6,6 +6,10 @@ import Speech
 /// Apple Speech (macOS 26): `SpeechAnalyzer` + `DictationTranscriber`, streaming while the mic is open so the final
 /// text is ready almost immediately after Stop.
 ///
+/// Locales are resolved at runtime from `DictationTranscriber.supportedLocales` for each of the three exposed
+/// languages (never assumed). Auto mode is implemented above this engine (see AppController): a local
+/// spoken-language ID picks the language, then the matching locale's session is started with the buffered audio.
+///
 /// Biasing: dictionary terms go in through `AnalysisContext.contextualStrings` and `SpeechAnalyzer.setContext(_:)`.
 /// `DictationTranscriber` honors contextual strings; the long-form `SpeechTranscriber` ignores them, which is why
 /// this app uses the dictation module. The list is capped (`Bias.maxTerms`) — long context makes the model drift.
@@ -15,8 +19,10 @@ final class SpeechEngine {
         case unknown, installed, downloading(Double), notInstalled, unsupported
     }
 
+    /// Locale of the most recent session (what the history "model" column records).
     private(set) var locale: Locale
-    private(set) var assetState: AssetState = .unknown
+    /// Per-language asset state ("en" / "de" / "ar").
+    private(set) var assetStates: [String: AssetState] = [:]
     private(set) var isSessionOpen = false
     private(set) var lastError: String?
     var biasTerms: [String] = []
@@ -24,11 +30,12 @@ final class SpeechEngine {
     /// Contextual strings are supported by the dictation module.
     let biasSupported = true
     var biasStatus: String {
-        biasSupported ? "Engine biasing: on \u{00B7} up to \(Bias.maxTerms) dictionary terms are passed as context." : "Engine biasing: unavailable."
+        "Engine biasing: on \u{00B7} up to \(Bias.maxTerms) dictionary terms are passed as context."
     }
 
     private var transcriber: DictationTranscriber?
     private var analyzer: SpeechAnalyzer?
+    private var supportedLocales: [Locale]?
     /// Shared with the audio thread; lives outside the main-actor state.
     private let box = SessionBox()
 
@@ -61,74 +68,96 @@ final class SpeechEngine {
         get async { await DictationTranscriber.supportedLocales }
     }
 
-    static var installedLocales: [Locale] {
-        get async { await DictationTranscriber.installedLocales }
+    // MARK: - Locale resolution (runtime, never assumed)
+
+    private func loadSupported() async -> [Locale] {
+        if let s = supportedLocales { return s }
+        let s = await DictationTranscriber.supportedLocales
+        supportedLocales = s
+        return s
+    }
+
+    /// The locale Apple Speech actually supports for a language on this Mac, or nil.
+    /// en: the user's own English region when supported, else en-US, else any en-*. de: de-DE else any de-*. ar: any ar-*.
+    func resolveLocale(for language: String) async -> Locale? {
+        let all = await loadSupported()
+        func matches(_ l: Locale) -> Bool { l.language.languageCode?.identifier == language }
+        let candidates = all.filter(matches)
+        if candidates.isEmpty { return nil }
+        func pick(_ id: String) -> Locale? { candidates.first { $0.identifier.replacingOccurrences(of: "_", with: "-") == id } }
+        switch language {
+        case Lang.en:
+            if matches(Locale.current), let same = candidates.first(where: { $0.identifier == Locale.current.identifier }) { return same }
+            return pick("en-US") ?? candidates[0]
+        case Lang.de:
+            return pick("de-DE") ?? candidates[0]
+        default:
+            return pick("ar-SA") ?? candidates[0]
+        }
+    }
+
+    private func makeTranscriber(_ loc: Locale) -> DictationTranscriber {
+        DictationTranscriber(locale: loc, contentHints: [.shortForm], transcriptionOptions: [], reportingOptions: [], attributeOptions: [])
     }
 
     // MARK: - Assets / model
 
-    func setLocale(_ identifier: String) async {
-        locale = Locale(identifier: identifier)
-        await refreshAssetState()
-    }
-
-    private func makeTranscriber() -> DictationTranscriber {
-        DictationTranscriber(
-            locale: locale,
-            contentHints: [.shortForm],
-            transcriptionOptions: [],
-            reportingOptions: [],
-            attributeOptions: []
-        )
-    }
-
-    func refreshAssetState() async {
-        let t = makeTranscriber()
-        transcriber = t
+    func refreshAssetState(for language: String) async {
+        guard let loc = await resolveLocale(for: language) else { assetStates[language] = .unsupported; return }
+        let t = makeTranscriber(loc)
         switch await AssetInventory.status(forModules: [t]) {
-        case .installed: assetState = .installed
-        case .downloading: assetState = .downloading(0)
-        case .supported: assetState = .notInstalled
-        case .unsupported: assetState = .unsupported
-        @unknown default: assetState = .unknown
+        case .installed: assetStates[language] = .installed
+        case .downloading: assetStates[language] = .downloading(0)
+        case .supported: assetStates[language] = .notInstalled
+        case .unsupported: assetStates[language] = .unsupported
+        @unknown default: assetStates[language] = .unknown
         }
     }
 
-    /// Downloads the on-device speech asset for the current locale.
-    func installAsset() async {
-        let t = makeTranscriber()
-        transcriber = t
+    func refreshAllAssetStates() async {
+        for l in Lang.supported { await refreshAssetState(for: l) }
+    }
+
+    func assetState(for language: String) -> AssetState { assetStates[language] ?? .unknown }
+    func isReady(for language: String) -> Bool { assetState(for: language) == .installed }
+
+    /// Downloads the on-device speech asset for a language. Returns false when Apple cannot provide it here.
+    @discardableResult
+    func installAsset(for language: String) async -> Bool {
+        guard let loc = await resolveLocale(for: language) else { assetStates[language] = .unsupported; return false }
+        let t = makeTranscriber(loc)
         do {
-            _ = try await AssetInventory.reserve(locale: locale)
+            _ = try await AssetInventory.reserve(locale: loc)
             guard let request = try await AssetInventory.assetInstallationRequest(supporting: [t]) else {
-                await refreshAssetState()
-                return
+                await refreshAssetState(for: language)
+                return isReady(for: language)
             }
-            assetState = .downloading(0)
+            assetStates[language] = .downloading(0)
             let progress = request.progress
             let poll = Task { [weak self] in
                 while !Task.isCancelled {
                     try? await Task.sleep(for: .milliseconds(250))
-                    await MainActor.run { self?.assetState = .downloading(progress.fractionCompleted) }
+                    await MainActor.run { self?.assetStates[language] = .downloading(progress.fractionCompleted) }
                 }
             }
             defer { poll.cancel() }
             try await request.downloadAndInstall()
             lastError = nil
         } catch {
-            lastError = "Model download failed: \(error.localizedDescription)"
+            lastError = "Speech model download failed: \(error.localizedDescription)"
         }
-        await refreshAssetState()
+        await refreshAssetState(for: language)
+        return isReady(for: language)
     }
 
     // MARK: - Session
 
-    var isReady: Bool { assetState == .installed }
-
-    /// Opens a streaming session. Call before `AudioCapture.start()`.
-    func startSession(inputFormat: AVAudioFormat) async throws {
+    /// Opens a streaming session for a language. Call before feeding audio. Throws when the locale is unavailable.
+    func startSession(inputFormat: AVAudioFormat, language: String) async throws {
         guard !isSessionOpen else { return }
-        let t = makeTranscriber()
+        guard let loc = await resolveLocale(for: language) else { throw EngineError.languageUnsupported(language) }
+        locale = loc
+        let t = makeTranscriber(loc)
         transcriber = t
         let analyzer = SpeechAnalyzer(modules: [t])
         self.analyzer = analyzer
@@ -158,7 +187,7 @@ final class SpeechEngine {
         isSessionOpen = true
     }
 
-    /// Called on the audio thread with mic buffers in the input node's format.
+    /// Called on the audio thread with mic buffers in the input node's format (or with buffered preroll).
     nonisolated func feed(_ buffer: AVAudioPCMBuffer) {
         guard let session = box.session, let converter = session.converter else { return }
 
@@ -203,6 +232,12 @@ final class SpeechEngine {
 
     enum EngineError: LocalizedError {
         case noAudioFormat
-        var errorDescription: String? { "No compatible audio format for the speech model." }
+        case languageUnsupported(String)
+        var errorDescription: String? {
+            switch self {
+            case .noAudioFormat: return "No compatible audio format for the speech model."
+            case .languageUnsupported(let l): return "Apple Speech has no \(Lang.display(l)) model on this Mac."
+            }
+        }
     }
 }

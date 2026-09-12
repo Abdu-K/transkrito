@@ -36,7 +36,8 @@ Fully on-device on both platforms, plus a two-layer dictionary (engine biasing +
 - Hotkey behavior: **push-to-talk (hold to record, release to transcribe)** is the required primary mode; toggle mode may remain as an option.
 - Input device selection is required on both platforms.
 - Engine biasing: macOS passes dictionary terms as contextual strings (cap 40); Parakeet TDT on Windows cannot be biased (greedy decoding) — Settings must say so honestly.
-- Correction pass: whole-word, case-insensitive, longest match first, tolerant of glued/hyphenated parts; must never touch substrings of other words. Warn on entries that look like common words.
+- Correction pass: whole-word, case-insensitive, longest match first, tolerant of glued/hyphenated parts; must never touch substrings of other words. Warn on entries that look like common words. Unicode-safe: Arabic (incl. harakat, hamza forms) and German umlauts/ß match by explicit Unicode word boundaries.
+- Languages (2026-09-12): English, German, Arabic, plus Auto (default) which determines the spoken language from the audio per utterance. Windows: Nemotron 3.5 ASR Streaming 0.6B (sherpa-onnx) with native language detection; Parakeet stays optional for en/de and is never used for Arabic or Auto. macOS: Apple DictationTranscriber per runtime-resolved locale; Auto = local Whisper-tiny language ID on a preroll, then Apple; Arabic falls back to Nemotron when Apple cannot install its asset. History stamps `language`; Arabic renders RTL without reordering strings.
 - History: searchable, copy per item, shows which corrections fired.
 - Settings: hotkey, model/language, input device, insert-at-cursor.
 - No Electron/Tauri; native only. No cloud.

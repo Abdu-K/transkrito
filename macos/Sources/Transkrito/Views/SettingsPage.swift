@@ -4,8 +4,11 @@ import SwiftUI
 /// Hotkey + mode, microphone, model (language + on-device asset), insert at cursor, files.
 struct SettingsPage: View {
     @Environment(AppController.self) private var app
-    @State private var locales: [Locale] = []
     @State private var devices: [InputDevice] = [.systemDefault]
+
+    private static let languages: [(String, String)] = [
+        (Lang.auto, "Auto \u{2014} Recommended"), (Lang.en, Lang.display(Lang.en)), (Lang.de, Lang.display(Lang.de)), (Lang.ar, Lang.display(Lang.ar)),
+    ]
 
     var body: some View {
         ScrollView {
@@ -41,16 +44,29 @@ struct SettingsPage: View {
                         }
                     }
                     GridRow {
-                        label("Model")
+                        label("Language")
                         VStack(alignment: .leading, spacing: Tokens.Space.s2) {
-                            Picker("", selection: Binding(get: { app.settings.model }, set: { id in Task { await app.setModel(id) } })) {
-                                ForEach(localeChoices, id: \.0) { choice in Text(choice.1).tag(choice.0) }
+                            Picker("", selection: Binding(get: { app.language }, set: { app.language = $0 })) {
+                                ForEach(Self.languages, id: \.0) { choice in Text(choice.1).tag(choice.0) }
                             }
                             .labelsHidden()
                             .pickerStyle(.menu)
                             .tint(Tokens.Colors.accentBase)
-                            assetRow
+                            Text(app.languageHint).textStyle(Tokens.TypeScale.caption).foregroundStyle(Tokens.Colors.inkSecondary)
+                        }
+                    }
+                    GridRow {
+                        label("Speech models")
+                        VStack(alignment: .leading, spacing: Tokens.Space.s2) {
+                            ForEach(Lang.supported, id: \.self) { l in appleRow(l) }
+                            sherpaRow(SherpaCatalog.languageID, purpose: "Language detector for Auto", needed: app.language == Lang.auto)
+                            if app.arabicFallback || SherpaCatalog.nemotron.isInstalled {
+                                sherpaRow(SherpaCatalog.nemotron, purpose: "Arabic fallback (Apple has no Arabic asset here)", needed: app.arabicFallback)
+                            }
                             Text(app.engine.biasStatus).textStyle(Tokens.TypeScale.caption).foregroundStyle(Tokens.Colors.inkSecondary)
+                            if let err = app.engine.lastError {
+                                Text(err).textStyle(Tokens.TypeScale.caption).foregroundStyle(Tokens.Colors.stateDanger)
+                            }
                         }
                     }
                     GridRow {
@@ -87,9 +103,8 @@ struct SettingsPage: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .task {
-            locales = await SpeechEngine.supportedLocales
             devices = AudioCapture.devices()
-            await app.engine.refreshAssetState()
+            await app.engine.refreshAllAssetStates()
         }
     }
 
@@ -105,41 +120,56 @@ struct SettingsPage: View {
         return list
     }
 
-    private var localeChoices: [(String, String)] {
-        var list = locales.map { ($0.identifier.replacingOccurrences(of: "_", with: "-"), Locale.current.localizedString(forIdentifier: $0.identifier) ?? $0.identifier) }
-            .sorted { $0.1 < $1.1 }
-        if !list.contains(where: { $0.0 == app.settings.model }) { list.insert((app.settings.model, app.settings.model), at: 0) }
-        return list
-    }
-
-    @ViewBuilder private var assetRow: some View {
+    /// One Apple Speech language: state + Download. Arabic that Apple cannot provide says so and points at the fallback.
+    @ViewBuilder private func appleRow(_ l: String) -> some View {
         HStack(spacing: Tokens.Space.s3) {
-            switch app.engine.assetState {
+            Text(Lang.display(l)).textStyle(Tokens.TypeScale.body).foregroundStyle(Tokens.Colors.inkPrimary)
+                .frame(width: Tokens.Comp.timeColumn, alignment: .leading)
+            switch app.engine.assetState(for: l) {
             case .installed:
-                Text("Downloaded \u{00B7} on this Mac").textStyle(Tokens.TypeScale.caption).foregroundStyle(Tokens.Colors.inkSecondary)
+                Text("Apple Speech \u{00B7} on this Mac").textStyle(Tokens.TypeScale.caption).foregroundStyle(Tokens.Colors.inkSecondary)
             case .notInstalled:
                 Text("Not downloaded").textStyle(Tokens.TypeScale.caption).foregroundStyle(Tokens.Colors.inkSecondary)
-                Button { Task { await app.engine.installAsset(); await app.loadModel() } } label: {
+                Button { Task { await app.engine.installAsset(for: l); await app.loadModel() } } label: {
                     Label("Download", systemImage: "arrow.down.circle")
                 }
                 .buttonStyle(GlassButtonStyle())
             case .downloading(let p):
                 Text("Downloading \(Int(p * 100))%").textStyle(Tokens.TypeScale.caption).foregroundStyle(Tokens.Colors.inkSecondary)
             case .unsupported:
-                Text("Not supported by Apple Speech").textStyle(Tokens.TypeScale.caption).foregroundStyle(Tokens.Colors.stateDanger)
+                Text(l == Lang.ar ? "Apple Speech unavailable \u{2014} uses the local multilingual model" : "Not supported by Apple Speech on this Mac")
+                    .textStyle(Tokens.TypeScale.caption).foregroundStyle(l == Lang.ar ? Tokens.Colors.inkSecondary : Tokens.Colors.stateDanger)
             case .unknown:
                 Text("Checking\u{2026}").textStyle(Tokens.TypeScale.caption).foregroundStyle(Tokens.Colors.inkTertiary)
             }
         }
-        if case .downloading(let p) = app.engine.assetState {
-            GeometryReader { g in
-                Capsule().fill(Tokens.Colors.lineGlass1)
-                Capsule().fill(Tokens.Colors.accentIce).frame(width: max(0, g.size.width * p))
+    }
+
+    /// One sherpa-onnx model: state, progress, Download.
+    @ViewBuilder private func sherpaRow(_ m: SherpaModel, purpose: String, needed: Bool) -> some View {
+        VStack(alignment: .leading, spacing: Tokens.Space.s1) {
+            HStack(spacing: Tokens.Space.s3) {
+                Text(m.name).textStyle(Tokens.TypeScale.body).foregroundStyle(Tokens.Colors.inkPrimary)
+                if let p = app.sherpaProgress[m.id] {
+                    Text(p < 0 ? "Unpacking\u{2026}" : "Downloading \(Int(p * 100))%").textStyle(Tokens.TypeScale.caption).foregroundStyle(Tokens.Colors.inkSecondary)
+                } else if m.isInstalled {
+                    Text("Downloaded \u{00B7} on this Mac").textStyle(Tokens.TypeScale.caption).foregroundStyle(Tokens.Colors.inkSecondary)
+                } else {
+                    Text("Not downloaded (about \(m.approxMB) MB)").textStyle(Tokens.TypeScale.caption).foregroundStyle(needed ? Tokens.Colors.stateWarning : Tokens.Colors.inkSecondary)
+                    Button { Task { await app.downloadSherpa(m, label: m.name.lowercased()); await app.loadModel() } } label: {
+                        Label("Download", systemImage: "arrow.down.circle")
+                    }
+                    .buttonStyle(GlassButtonStyle())
+                }
             }
-            .frame(height: Tokens.Border.focus)
-        }
-        if let err = app.engine.lastError {
-            Text(err).textStyle(Tokens.TypeScale.caption).foregroundStyle(Tokens.Colors.stateDanger)
+            Text(purpose).textStyle(Tokens.TypeScale.caption).foregroundStyle(Tokens.Colors.inkTertiary)
+            if let p = app.sherpaProgress[m.id], p >= 0 {
+                GeometryReader { g in
+                    Capsule().fill(Tokens.Colors.lineGlass1)
+                    Capsule().fill(Tokens.Colors.accentIce).frame(width: max(0, g.size.width * p))
+                }
+                .frame(height: Tokens.Border.focus)
+            }
         }
     }
 }

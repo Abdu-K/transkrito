@@ -78,14 +78,22 @@ struct HistoryRow: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: Tokens.Space.s2) {
-            Text(item.timeLabel)
-                .textStyle(Tokens.TypeScale.caption).foregroundStyle(Tokens.Colors.inkTertiary)
-                .frame(width: Tokens.Comp.timeColumn, alignment: .leading)
-                .padding(.top, Tokens.Comp.timeBaselineOffset)
+            VStack(alignment: .leading, spacing: 0) {
+                Text(item.timeLabel).textStyle(Tokens.TypeScale.caption).foregroundStyle(Tokens.Colors.inkTertiary)
+                if !item.languageLabel.isEmpty {
+                    Text(item.languageLabel).textStyle(Tokens.TypeScale.caption).foregroundStyle(Tokens.Colors.inkTertiary)
+                }
+            }
+            .frame(width: Tokens.Comp.timeColumn, alignment: .leading)
+            .padding(.top, Tokens.Comp.timeBaselineOffset)
             VStack(alignment: .leading, spacing: Tokens.Space.s2) {
+                // Arabic-dominant rows lay out right-to-left; the string itself is never reordered.
                 Text(item.text)
                     .textStyle(Tokens.TypeScale.transcript).foregroundStyle(Tokens.Colors.inkPrimary)
                     .textSelection(.enabled)
+                    .environment(\.layoutDirection, item.isRightToLeft ? .rightToLeft : .leftToRight)
+                    .multilineTextAlignment(item.isRightToLeft ? .trailing : .leading)
+                    .frame(maxWidth: .infinity, alignment: item.isRightToLeft ? .trailing : .leading)
                 if item.hasCorrections {
                     Chip(label: item.correctionLabel, isOn: $expanded)
                     if expanded {

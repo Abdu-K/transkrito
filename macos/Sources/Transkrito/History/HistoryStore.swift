@@ -14,7 +14,7 @@ struct CorrectionRecord: Codable, Identifiable, Equatable {
 }
 
 struct Transcription: Codable, Identifiable, Equatable {
-    enum CodingKeys: String, CodingKey { case id, date, raw, text, durationSec, engine, model, corrections }
+    enum CodingKeys: String, CodingKey { case id, date, raw, text, durationSec, engine, model, corrections, language }
 
     /// True briefly after the row lands so the list can hold a tint until noticed. Not persisted.
     var isNew = false
@@ -26,6 +26,11 @@ struct Transcription: Codable, Identifiable, Equatable {
     var engine: String = "apple-speech"
     var model: String = ""
     var corrections: [CorrectionRecord] = []
+    /// "en" | "de" | "ar" | "unknown". nil on entries written before multilingual support; never backfilled.
+    var language: String? = nil
+
+    var languageLabel: String { language.map { $0 == Lang.unknown ? "" : Lang.display($0) } ?? "" }
+    var isRightToLeft: Bool { LanguageDetector.isRightToLeft(text) }
 
     var hasCorrections: Bool { !corrections.isEmpty }
     var correctionCount: Int { corrections.reduce(0) { $0 + $1.count } }

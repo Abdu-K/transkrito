@@ -51,11 +51,13 @@ struct EntryEditor: View {
             HStack(spacing: Tokens.Space.s2) {
                 TextField(draft.isCorrection ? "When it hears, e.g. cloud code" : "Word or phrase, e.g. Anthropic", text: $draft.hear)
                     .field(warning: warnings.contains { $0.kind == .common })
+                    .environment(\.layoutDirection, LanguageDetector.isRightToLeft(draft.hear) ? .rightToLeft : .leftToRight)
                     .onSubmit { if draft.canSave { onSave() } }
                 if draft.isCorrection {
                     Text("\u{2192}").textStyle(Tokens.TypeScale.body).foregroundStyle(Tokens.Colors.inkTertiary)
                     TextField("Write it as", text: $draft.write)
                         .field()
+                        .environment(\.layoutDirection, LanguageDetector.isRightToLeft(draft.write) ? .rightToLeft : .leftToRight)
                         .onSubmit { if draft.canSave { onSave() } }
                 }
                 Button(existing == nil ? "Add" : "Save", action: onSave)
@@ -148,9 +150,11 @@ struct DictionaryRow: View {
             } else {
                 HStack(spacing: Tokens.Space.s2) {
                     Text(entry.hearText).textStyle(Tokens.TypeScale.body).foregroundStyle(Tokens.Colors.inkPrimary)
+                        .environment(\.layoutDirection, LanguageDetector.isRightToLeft(entry.hearText) ? .rightToLeft : .leftToRight)
                     if !entry.isTerm {
                         Text("\u{2192}").textStyle(Tokens.TypeScale.body).foregroundStyle(Tokens.Colors.inkTertiary)
                         Text(entry.writeText).textStyle(Tokens.TypeScale.body).foregroundStyle(Tokens.Colors.inkPrimary)
+                            .environment(\.layoutDirection, LanguageDetector.isRightToLeft(entry.writeText) ? .rightToLeft : .leftToRight)
                     }
                     Spacer(minLength: 0)
                     HStack(spacing: Tokens.Space.s1) {

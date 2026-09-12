@@ -34,10 +34,28 @@ Windows modifiers: `control`, `alt`, `shift`, `win`. macOS: `control`, `option`,
 `hotkeyMode`: `hold` (default, push-to-talk: chord down → listening, chord up → transcribe; releasing any modifier also ends the hold) or `toggle` (press → start, press → stop). Windows uses a low-level keyboard hook (the chord's key is swallowed); macOS uses Carbon hot-key pressed/released events.
 `inputDevice`: Windows = WASAPI endpoint id, macOS = Core Audio device UID; empty = system default. Any device format is downmixed to mono and resampled.
 
+## Languages
+Spoken languages exposed: `en`, `de`, `ar`; setting `language` = `auto` (default) | `en` | `de` | `ar`. Missing/unknown values load as `auto` without rewriting the file. Changing it never needs a restart.
+Every new history item carries `"language": "en"|"de"|"ar"|"unknown"`; entries written earlier have no key and are never backfilled. The transcript text is never changed by this metadata.
+
+### Windows
+Engine: sherpa-onnx `OnlineRecognizer` running Nemotron 3.5 ASR Streaming 0.6B (560 ms chunk, int8; 30+ locales incl. en/de/ar; native spoken-language detection). Explicit language → `stream.SetOption("language", "de")`; Auto → option unset. Audio is decoded while it streams; partial text feeds `LanguageDetector` for the live "Listening · Deutsch" status. Parakeet TDT stays as an optional en/de model and can never be selected for Arabic or Auto (`ModelCatalog.Resolve`).
+
+### macOS
+Explicit `en`/`de`/`ar` → Apple `DictationTranscriber` with a locale resolved at runtime from `supportedLocales` (en: the user's English region if supported, else en-US, else any en; de: de-DE else any de; ar: ar-SA else any ar). Assets install through `AssetInventory` on demand.
+Auto → capture starts at once; the utterance is prerolled (mic buffers + 16 kHz mono) until ≥ 1.2 s of voiced audio or 3.0 s total; Whisper-tiny spoken-language ID (sherpa-onnx, 116 MB, local) picks en/de/ar; the matching pipeline opens and the preroll is replayed into it — no words lost. Unsure → last confident detection if < 10 min old, else the system language if exposed, else English, recorded as uncertain (history gets the transcript's text-classifier language or `unknown`).
+Arabic: tested at runtime — resolve locale, install asset; if Apple cannot provide it, the Nemotron model (same as Windows, 475 MB) is downloaded and used for Arabic, announced once: "Apple Arabic speech model unavailable — using local multilingual model".
+
+### Text language classifier (both platforms, shared vectors "language")
+Arabic script share ≥ 50 % → `ar`; German vs English by function-word lexicon plus umlaut/ß evidence; confident when the winner has ≥ 2 hits and ≥ 2× the loser (or Arabic share ≥ 50 %); otherwise `unknown`. Used for history stamps, live status on streaming engines, and as the fallback when the audio detector is unsure.
+
+### RTL
+`isRightToLeft(text)`: Arabic/Hebrew letters ≥ half the Latin letters → render right-to-left (WPF `FlowDirection`, SwiftUI `layoutDirection`) on transcript rows, dictionary fields and previews. Strings are never reordered; copy/insert carry logical Unicode.
+
 ## Correction engine — `apply(text, entries) -> (text, events)`
 1. Rules: `correction` → hear→write. `term` → text→text (fixes casing and glued/hyphen variants).
 2. Normalize hear: trim, collapse whitespace. Parts = split on whitespace and `-`. Drop empty parts.
-3. Pattern = `\b` + parts.map(regexEscape).join(`[\s\-]*`) + `\b`, case-insensitive, Unicode-aware `\b`. Single-part rule: `\bpart\b`.
+3. Pattern = `(?<![\p{L}\p{M}\p{N}_])` + parts.map(regexEscape).join(`[\s\-]*`) + `(?![\p{L}\p{M}\p{N}_])`, case-insensitive. Explicit Unicode boundaries (letters, marks incl. Arabic harakat, digits, underscore) instead of `\b`, so Arabic and umlauts behave identically on .NET and ICU.
    - "cloud code" → `\bcloud[\s\-]*code\b`: matches "cloud code", "CloudCode", "Cloud-Code", "cloud   code". Not "Cloudflare", not "cloud", not "encode".
 4. Order: by normalized-hear length desc (ties: created asc). Apply sequentially over the whole text.
 5. Each rule replaces every match with `write` verbatim (write's casing preserved). A match whose substring already equals `write` exactly is left alone and not counted. Record one event per rule with ≥1 counted match: `{hear, write, matched: first counted substring, count}`.

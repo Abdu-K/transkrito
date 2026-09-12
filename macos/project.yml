@@ -10,6 +10,10 @@ settings:
     SWIFT_VERSION: "6.0"
     SWIFT_STRICT_CONCURRENCY: minimal
     MACOSX_DEPLOYMENT_TARGET: "26.0"
+packages:
+  sherpa-onnx:
+    url: https://github.com/k2-fsa/sherpa-onnx
+    exactVersion: 1.13.8
 targets:
   Transkrito:
     type: application
@@ -33,6 +37,8 @@ targets:
         ENABLE_HARDENED_RUNTIME: NO
         OTHER_SWIFT_FLAGS: "-D XCODE_BUILD"
     dependencies:
+      - package: sherpa-onnx
+        product: sherpa-onnx
       - sdk: Speech.framework
       - sdk: AVFoundation.framework
       - sdk: Carbon.framework

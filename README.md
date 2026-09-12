@@ -7,8 +7,9 @@ Two native apps, one design, one spec:
 | | macOS | Windows |
 |---|---|---|
 | UI | SwiftUI (`macos/`) | WPF, .NET 9 (`windows/`) |
-| Engine | Apple Speech — `SpeechAnalyzer` + `DictationTranscriber`, on-device (macOS 26) | NVIDIA Parakeet TDT 0.6B via sherpa-onnx, on-device |
-| Biasing | dictionary terms passed as `AnalysisContext.contextualStrings` (cap 40) | not supported by Parakeet TDT (greedy decoding) — shown in Settings |
+| Engine | Apple Speech — `SpeechAnalyzer` + `DictationTranscriber`, on-device (macOS 26); Nemotron 3.5 (sherpa-onnx) as the Arabic fallback | NVIDIA Nemotron 3.5 ASR Streaming 0.6B via sherpa-onnx, on-device (Parakeet TDT optional for en/de) |
+| Languages | English, Deutsch, العربية — Auto detects per utterance (Whisper-tiny language ID + Apple locale) | English, Deutsch, العربية — Auto uses the model's own language detection |
+| Biasing | dictionary terms passed as `AnalysisContext.contextualStrings` (cap 40) | not available for NeMo transducers through sherpa-onnx — shown in Settings |
 | Correction pass | identical, tested against `shared/correction-tests.json` | identical |
 | Hotkey | Carbon `RegisterEventHotKey` press + release (no Accessibility needed) | low-level keyboard hook (press + release, chord key swallowed) |
 | Microphone | Core Audio device list, set on the input unit | WASAPI endpoint list, downmix + resample |
@@ -38,7 +39,9 @@ swift test                       # shared correction vectors
 
 Prefer Xcode? `brew install xcodegen && xcodegen generate && open Transkrito.xcodeproj`, then ⌘R.
 
-First run: allow **Microphone** and **Speech Recognition** when asked. Settings (⌘,) → Model → Download fetches the on-device speech asset for your language. "Insert at cursor" needs **Accessibility** (asked once; without it text is still copied to the clipboard).
+First run: allow **Microphone** and **Speech Recognition** when asked. Settings (⌘,) → Speech models shows one row per language; assets install on demand (Auto also fetches the 116 MB Whisper-tiny language detector; Arabic without an Apple asset fetches the 475 MB Nemotron model). "Insert at cursor" needs **Accessibility** (asked once; without it text is still copied to the clipboard).
+
+Verifying languages on the Mac: set Language to English / Deutsch / العربية in turn and dictate; each history row shows the language under the time. Set Auto and dictate the three languages on consecutive hotkey presses — the rail status reads "Detecting language…" then "Listening · Deutsch" (etc.), and history stamps `en`/`de`/`ar`. If Settings shows Arabic as "Apple Speech unavailable", the Nemotron row appears and Arabic dictation runs through it.
 
 ## Windows
 
@@ -51,7 +54,9 @@ dotnet run --project Transkrito                    # run
 dotnet publish Transkrito -c Release -r win-x64    # self-contained exe in Transkrito/bin/Release/net9.0-windows10.0.19041.0/win-x64/publish
 ```
 
-First run: Settings (Ctrl+,) → Model → Download (≈470 MB, extracted to `%LOCALAPPDATA%\Transkrito\models`). Pick your microphone there too. Default hotkey Ctrl+Alt+Space, hold-to-talk; switch to press-to-toggle in Settings.
+First run: Settings (Ctrl+,) → Model → Download (Nemotron 3.5 multilingual, ≈475 MB, extracted to `%LOCALAPPDATA%\Transkrito\models`). Pick your microphone and language there too (Auto is the default). Default hotkey Ctrl+Alt+Space, hold-to-talk; switch to press-to-toggle in Settings.
+
+Dev aids: `TRANSKRITO_PAGE=dictionary|settings` opens on that page; `TRANSKRITO_TEST_WAV=<16 kHz mono wav>` replays a file instead of the microphone when you hold the hotkey. `TRANSKRITO_DOWNLOAD=1 dotnet test` fetches the model through `ModelManager` and runs the real-audio tests (the archive's `test_wavs/{de,ar}.wav` plus Windows TTS for English).
 
 ## Design
 
