@@ -1,82 +1,154 @@
-# Transkrito
+# 🎙️ Transkrito
 
-Quiet, minimal dictation. Hold a hotkey anywhere, speak, let go — the text lands at your cursor, corrected by a dictionary you teach it.
+### Your voice. Your machine. Your text.
 
-Two native apps, one design, one spec:
+**Stop paying subscriptions just to turn your voice into text.**
 
-| | macOS | Windows |
-|---|---|---|
-| UI | SwiftUI (`macos/`) | WPF, .NET 9 (`windows/`) |
-| Engine | Apple Speech — `SpeechAnalyzer` + `DictationTranscriber`, on-device (macOS 26); Nemotron 3.5 (sherpa-onnx) as the Arabic fallback | NVIDIA Nemotron 3.5 ASR Streaming 0.6B via sherpa-onnx, on-device (Parakeet TDT optional for en/de) |
-| Languages | English, Deutsch, العربية — Auto detects per utterance (Whisper-tiny language ID + Apple locale) | English, Deutsch, العربية — Auto uses the model's own language detection |
-| Biasing | dictionary terms passed as `AnalysisContext.contextualStrings` (cap 40) | not available for NeMo transducers through sherpa-onnx — shown in Settings |
-| Correction pass | identical, tested against `shared/correction-tests.json` | identical |
-| Hotkey | Carbon `RegisterEventHotKey` press + release (no Accessibility needed) | low-level keyboard hook (press + release, chord key swallowed) |
-| Microphone | Core Audio device list, set on the input unit | WASAPI endpoint list, downmix + resample |
-| Secondary surface | menu bar extra | tray icon |
+Transkrito is a fast, private, local dictation app for Windows (and soon macOS — see below).
 
-## Layout
+Hold a hotkey, speak, release — and your words are instantly turned into text, copied to your clipboard, and optionally pasted right where you're typing.
 
+No cloud.
+No account.
+No word limits.
+No subscription watching every sentence you say.
+
+Just press, speak, and let your keyboard catch up. ⚡
+
+---
+
+## ✨ Why Transkrito?
+
+Voice-to-text isn't magic anymore.
+
+So why should you need another monthly subscription just to use it?
+
+Many dictation apps send your voice to remote servers and charge you based on usage.
+
+Transkrito takes a different approach:
+
+> **Your voice stays on your computer.**
+
+Audio capture, speech recognition, language detection, dictionary corrections, and history all run locally on your machine.
+
+The only network access normally needed is when downloading a speech model.
+
+After that, transcription happens on-device.
+
+---
+
+## 🚀 How it works
+
+It's intentionally simple:
+
+1. ⌨️ Hold your global hotkey
+2. 🎙️ Speak
+3. ✋ Release
+4. ⚡ Transkrito converts your speech into text
+5. 📋 The result goes to your clipboard
+6. 📝 Optionally, it gets pasted automatically at your cursor
+
+That's it.
+
+No browser tabs.
+No uploading recordings.
+No copy-pasting from a website.
+
+---
+
+## 🔥 Features
+
+### 🎙️ Push-to-talk dictation
+
+Use a global hotkey from almost anywhere on your computer.
+
+Choose between:
+
+- Hold-to-talk
+- Toggle mode
+- Custom hotkeys
+
+---
+
+### ⚡ Fast transcription
+
+Transkrito processes your speech locally and can place the result in your clipboard within roughly a second after you stop speaking.
+
+You can also enable automatic paste so the text appears directly where you're typing.
+
+---
+
+### 🌍 Automatic language detection
+
+Speak naturally without constantly changing settings.
+
+Transkrito can automatically detect:
+
+- 🇬🇧 English
+- 🇩🇪 German
+- 🇸🇦 Arabic
+
+Or lock the app to one language manually.
+
+---
+
+### 📖 Personal Dictionary
+
+Speech recognition isn't perfect — especially with names, technical terms, slang, or words you use often.
+
+Transkrito lets you create your own correction rules.
+
+For example:
+
+```text
+Transcripto → Transkrito
 ```
-design/   tokens.json (source of truth) · TOKENS.md · gen-tokens.py (→ Tokens.swift / Tokens.xaml / Tokens.cs) · make-icon.py
-shared/   SPEC.md (behavior + file formats) · correction-tests.json · common-words.txt · dictionary.example.json
-macos/    SwiftPM package + XcodeGen project.yml + scripts/make-app.sh
-windows/  Transkrito.sln (WPF app + xUnit tests)
-```
 
-Every view pulls from the tokens. Change `design/tokens.json`, run `python design/gen-tokens.py`, rebuild.
+Matching is whole-word, case-insensitive, and Unicode-safe (handles Arabic diacritics and German umlauts correctly). It warns you about duplicate or conflicting rules instead of silently doing the wrong thing.
 
-## macOS
+---
 
-Requires macOS 26 and Xcode 26 (Swift 6 toolchain).
+### 🕘 History
 
-```bash
-cd macos
-./scripts/make-app.sh            # swift build -c release → build/Transkrito.app (ad-hoc signed)
-./scripts/make-app.sh --install  # also copies to /Applications
-swift test                       # shared correction vectors
-```
+Everything you dictate is saved locally, grouped by day and searchable. Arabic entries render right-to-left. You can see which dictionary corrections fired on each entry.
 
-Prefer Xcode? `brew install xcodegen && xcodegen generate && open Transkrito.xcodeproj`, then ⌘R.
+---
 
-First run: allow **Microphone** and **Speech Recognition** when asked. Settings (⌘,) → Speech models shows one row per language; assets install on demand (Auto also fetches the 116 MB Whisper-tiny language detector; Arabic without an Apple asset fetches the 475 MB Nemotron model). "Insert at cursor" needs **Accessibility** (asked once; without it text is still copied to the clipboard).
+## 🧠 Under the hood
 
-Verifying languages on the Mac: set Language to English / Deutsch / العربية in turn and dictate; each history row shows the language under the time. Set Auto and dictate the three languages on consecutive hotkey presses — the rail status reads "Detecting language…" then "Listening · Deutsch" (etc.), and history stamps `en`/`de`/`ar`. If Settings shows Arabic as "Apple Speech unavailable", the Nemotron row appears and Arabic dictation runs through it.
+No server, no database — just one process talking to itself. Two things worth knowing:
 
-## Windows
+- **Speech engines:** NVIDIA Nemotron 3.5 (streaming) by default, with an offline Parakeet TDT model available for English/German. Both run through [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) — an open-source ONNX runtime for speech models.
+- **Design:** colors, spacing, and type all come from one JSON file (`design/tokens.json`), so the app looks consistent instead of being styled ad hoc.
 
-Requires the .NET 9 SDK (`winget install Microsoft.DotNet.SDK.9`).
+Stack: C# / .NET 9 / WPF on Windows.
 
-```bash
-cd windows
-dotnet test                                        # shared vectors + Parakeet smoke test (skipped until the model is downloaded)
-dotnet run --project Transkrito                    # run
-dotnet publish Transkrito -c Release -r win-x64    # self-contained exe in Transkrito/bin/Release/net9.0-windows10.0.19041.0/win-x64/publish
-```
+---
 
-First run: Settings (Ctrl+,) → Model → Download (Nemotron 3.5 multilingual, ≈475 MB, extracted to `%LOCALAPPDATA%\Transkrito\models`). Pick your microphone and language there too (Auto is the default). Default hotkey Ctrl+Alt+Space, hold-to-talk; switch to press-to-toggle in Settings.
+## 🤖 Built with AI-assisted development
 
-Dev aids: `TRANSKRITO_PAGE=dictionary|settings` opens on that page; `TRANSKRITO_TEST_WAV=<16 kHz mono wav>` replays a file instead of the microphone when you hold the hotkey. `TRANSKRITO_DOWNLOAD=1 dotnet test` fetches the model through `ModelManager` and runs the real-audio tests (the archive's `test_wavs/{de,ar}.wav` plus Windows TTS for English).
+I used Claude Code to help write parts of this — not all of it. I designed the architecture, wrote the behavior spec and the test cases, and reviewed every change it generated before accepting it. Some of the implementation is AI-written, checked and tested by me; the product decision, the system design, and the review are mine. I'm saying this upfront instead of pretending otherwise.
 
-## Design
+This isn't my first project — it follows the same spec-first, review-everything way I work generally.
 
-`design/tokens.json` is the single source of truth (v2: navy → icy cyan, glass pillars, sidebar shell). `PRODUCT.md` holds product truth; `.impeccable/surfaces/*.md` the direction contract; `DESIGN.md` the built world. The impeccable skills are installed under `.claude/skills/impeccable` — its Live Mode is web-only and does not attach to these native apps; the review/critique/polish playbooks do apply.
+---
 
-## Files you can edit by hand
+## 🚧 Honest limitations
 
-| | macOS | Windows |
-|---|---|---|
-| dictionary | `~/Library/Application Support/Transkrito/dictionary.json` | `%APPDATA%\Transkrito\dictionary.json` |
-| history | `…/history.json` | same |
-| settings | `…/settings.json` | same |
+- No dictionary biasing at the engine level yet — corrections happen as a pass after transcription.
+- CPU-only inference, so expect roughly 1–2 seconds of delay after you release the hotkey.
+- Local-only, single user: no sync, no multiple profiles, history caps at 500 entries.
 
-The dictionary file is watched; edits in a text editor show up in the app immediately. Format in `shared/dictionary.example.json`.
+---
 
-## Dictionary
+## 🗺️ Roadmap
 
-Two entry types:
+- [ ] macOS version — written, not yet built/tested. Coming soon.
+- [ ] More languages
+- [ ] Smarter dictionary correction
 
-- **Word or phrase** — `Anthropic`, `Vercel`, `Claude Code`. Passed to the engine as context (macOS) and used to fix casing / glued variants afterwards (`claude-code` → `Claude Code`).
-- **Correction** — when you hear *X*, write *Y*. `cloud code` → `Claude Code` also catches `CloudCode` and `Cloud-Code`; it never touches `Cloudflare` or a bare `cloud`.
+---
 
-Matching is whole-word, case-insensitive, longest entry first. Entries that look like common words get a warning before you save. Every history row shows what the dictionary changed.
+## License
+
+MIT — see [LICENSE](LICENSE).
